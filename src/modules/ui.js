@@ -201,21 +201,29 @@ export function renderHistoriasList() {
     </div>
   </div>
 
-  <div class="img-cta-banner">
-    <div class="img-cta-content">
-      <span class="img-cta-icon">🎨</span>
-      <div>
-        <div class="img-cta-title">¿Tienes un mockup o wireframe?</div>
-        <div class="img-cta-sub">Analiza imágenes con IA para generar historias automáticamente</div>
+  <div class="img-cta-banner${localStorage.getItem('afu-banner-collapsed') === '1' ? ' collapsed' : ''}" id="img-cta-banner">
+    <div class="img-cta-banner-header">
+      <div class="img-cta-content">
+        <span class="img-cta-icon">🎨</span>
+        <div>
+          <div class="img-cta-title">¿Tienes un mockup o wireframe?</div>
+          <div class="img-cta-sub">Analiza imágenes con IA para generar historias automáticamente</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <button class="btn btn-accent btn-sm" onclick="window.location.hash='#/historias/nueva-imagen'">Analizar imagen →</button>
+        <button class="img-cta-dismiss" id="btn-banner-dismiss" title="Ocultar banner">✕</button>
       </div>
     </div>
-    <button class="btn btn-accent btn-sm" onclick="window.location.hash='#/historias/nueva-imagen'">Analizar imagen →</button>
   </div>
 
   <div id="historias-content">${hists.length ? renderHuContent(hists, vista) : renderEmptyState()}</div>
 
   <div class="sel-bar hidden" id="sel-bar">
-    <span id="sel-count">0 seleccionadas</span>
+    <div class="sel-bar-info">
+      <span id="sel-count">0 seleccionadas</span>
+      <div id="sel-chips" class="sel-chips"></div>
+    </div>
     <div class="sel-bar-actions">
       <button class="btn btn-ghost btn-sm" id="btn-sel-pdf">PDF</button>
       <button class="btn btn-ghost btn-sm" id="btn-sel-csv">CSV</button>
@@ -352,6 +360,13 @@ function setupListaEvents(hists) {
     });
   });
 
+  // Banner dismiss / restore
+  const bannerEl = document.getElementById('img-cta-banner');
+  document.getElementById('btn-banner-dismiss')?.addEventListener('click', () => {
+    localStorage.setItem('afu-banner-collapsed', '1');
+    bannerEl?.classList.add('collapsed');
+  });
+
   document.getElementById('btn-modo-sel').addEventListener('click', () => {
     state.modoSeleccion = !state.modoSeleccion;
     if (!state.modoSeleccion) { state.seleccionadas.clear(); renderHistoriasList(); return; }
@@ -471,6 +486,26 @@ function updateSelBar() {
   if (n > 0 || state.modoSeleccion) bar.classList.remove('hidden');
   else bar.classList.add('hidden');
 
+  // Render chips showing which stories are selected (ID + truncated title)
+  const chipsEl = document.getElementById('sel-chips');
+  if (chipsEl) {
+    if (n === 0) {
+      chipsEl.innerHTML = '';
+    } else {
+      const ids = [...state.seleccionadas];
+      const MAX_CHIPS = 5;
+      const shown = ids.slice(0, MAX_CHIPS);
+      const extra = ids.length - shown.length;
+      const getLabel = id => {
+        const h = state.historias.find(x => x.id === id);
+        return h ? `${id} · ${h.resumen.length > 30 ? h.resumen.slice(0, 28) + '…' : h.resumen}` : id;
+      };
+      chipsEl.innerHTML =
+        shown.map(id => `<span class="sel-chip" title="${esc(getLabel(id))}">${esc(id)}</span>`).join('') +
+        (extra > 0 ? `<span class="sel-chips-more">+${extra} más</span>` : '');
+    }
+  }
+
   // Sincronizar el checkbox "Seleccionar todo" con el estado real:
   // marcarlo si todas las filas visibles están seleccionadas.
   const checkAll = document.getElementById('check-all');
@@ -483,9 +518,18 @@ function updateSelBar() {
 function setupSelBar() {
   const bar = document.getElementById('sel-bar');
   if (!bar) return;
-  document.getElementById('btn-sel-pdf')?.addEventListener('click', () => { import('./export.js').then(m => m.exportarPDF()); });
-  document.getElementById('btn-sel-csv')?.addEventListener('click', () => { import('./export.js').then(m => m.exportarCSV()); });
-  document.getElementById('btn-sel-md')?.addEventListener('click',  () => { import('./export.js').then(m => m.exportarTodo()); });
+  document.getElementById('btn-sel-pdf')?.addEventListener('click', () => {
+    if (!state.seleccionadas.size) { toast('Selecciona al menos una historia', 'warn'); return; }
+    import('./export.js').then(m => m.exportarPDF());
+  });
+  document.getElementById('btn-sel-csv')?.addEventListener('click', () => {
+    if (!state.seleccionadas.size) { toast('Selecciona al menos una historia', 'warn'); return; }
+    import('./export.js').then(m => m.exportarCSV());
+  });
+  document.getElementById('btn-sel-md')?.addEventListener('click',  () => {
+    if (!state.seleccionadas.size) { toast('Selecciona al menos una historia', 'warn'); return; }
+    import('./export.js').then(m => m.exportarTodo());
+  });
   document.getElementById('btn-sel-jira')?.addEventListener('click', () => {
     if (!state.seleccionadas.size) return;
     if (!state.jiraCfg?.email || !state.jiraCfg?.token) {
