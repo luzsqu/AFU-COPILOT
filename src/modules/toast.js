@@ -12,3 +12,4 @@ export function toast(msg, tipo = 'success') {
     setTimeout(() => el.remove(), 350);
   }, 4000);
 }
+// REVISAR TOAST
