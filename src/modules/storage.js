@@ -33,14 +33,23 @@ export function cargar() {
 }
 
 export function guardar() {
-  guardaCompleta({
-    usuario:         state.usuario,
-    proyectos:       state.proyectos,
-    historias:       state.historias,
-    epicas:          state.epicas,
-    proyectoActivoId: state.proyectoActivoId,
-    prefs:           state.prefs
-  });
+  try {
+    localStorage.setItem(SK, JSON.stringify({
+      usuario:          state.usuario,
+      proyectos:        state.proyectos,
+      historias:        state.historias,
+      epicas:           state.epicas,
+      proyectoActivoId: state.proyectoActivoId,
+      prefs:            state.prefs
+    }));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      // Lazy import para evitar ciclos — toast.js no depende de storage.js
+      import('./toast.js').then(({ toast }) => {
+        toast('⚠️ Almacenamiento lleno. Exporta tus historias y elimina imágenes antiguas para liberar espacio.', 'error');
+      });
+    }
+  }
 }
 
 export function cargarConfigIA() {

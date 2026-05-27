@@ -192,7 +192,7 @@ function crearProyecto(e) {
   }
 
   const proj = {
-    id: 'proj-' + Date.now().toString(36),
+    id: 'proj-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
     nombre,
     descripcion: document.getElementById('proj-desc').value.trim(),
     jiraKey: document.getElementById('proj-key').value.trim().toUpperCase(),
@@ -304,7 +304,7 @@ ${docs.length ? `
     const nombre = document.getElementById('ctx-nombre').value.trim();
     const texto  = document.getElementById('ctx-texto').value.trim();
     if (!nombre || !texto) { toast('Completa el nombre y el contenido', 'warn'); return; }
-    proj.contexto.push({ id: Date.now().toString(36), nombre, texto, creadoEn: new Date().toISOString() });
+    proj.contexto.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,4), nombre, texto, creadoEn: new Date().toISOString() });
     guardar();
     renderContextModalBody(proj);
     syncContextBadge(proj);

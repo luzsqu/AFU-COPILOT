@@ -4,7 +4,7 @@ import { guardar } from './storage.js';
 import { generarCriterios } from './gherkin.js';
 import { generarTestCases, TC_ESTADOS, TC_TIPOS_LIST, TC_PRIORIDADES, mkTestCase } from './testcases.js';
 import { crearHistoriaData, crearHistoriasDesdeIA, eliminarHistoriaById, duplicarHistoria, actualizarHistoria } from './historias.js';
-import { toast } from './toast.js';
+import { toast, toastAction } from './toast.js';
 import { navigate } from './router.js';
 import { showConfirm } from './auth.js';
 import { generarHistoriasDesdeImagenConIA } from './import.js';
@@ -179,16 +179,44 @@ function renderOnboarding() {
 }
 
 // ── HISTORIAS LIST ────────────────────────────────────────────────────────────
+// Sort & filter state — persists across view-switch (cards ↔ tabla) without re-render
+let _sortCol = null;        // 'id' | 'tipo' | 'resumen' | 'prioridad' | null
+let _sortDir = 'asc';       // 'asc' | 'desc'
+let _filtros = { tipo: null, prioridad: null };
+
+const PRIO_ORDER = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+
+function _applyFiltersAndSort(hists) {
+  let out = hists;
+  if (_filtros.tipo)      out = out.filter(h => h.tipo      === _filtros.tipo);
+  if (_filtros.prioridad) out = out.filter(h => h.prioridad === _filtros.prioridad);
+  if (!_sortCol) return out;
+  return [...out].sort((a, b) => {
+    let va, vb;
+    if (_sortCol === 'prioridad') {
+      va = PRIO_ORDER[a.prioridad] ?? 99;
+      vb = PRIO_ORDER[b.prioridad] ?? 99;
+      return _sortDir === 'asc' ? va - vb : vb - va;
+    }
+    va = (a[_sortCol] || '').toString().toLowerCase();
+    vb = (b[_sortCol] || '').toString().toLowerCase();
+    if (va < vb) return _sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return _sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
 export function renderHistoriasList() {
-  const hists = state.historias.filter(h => h.proyectoId === state.proyectoActivoId);
-  const vista = state.prefs.vista;
+  const allHists = state.historias.filter(h => h.proyectoId === state.proyectoActivoId);
+  const hists    = _applyFiltersAndSort(allHists);
+  const vista    = state.prefs.vista;
 
   document.getElementById('view').innerHTML = `
 <div class="historias-wrap">
   <div class="historias-header">
     <div>
       <h1 class="page-title">Historias de Usuario</h1>
-      <p class="page-sub">${hists.length} historia${hists.length !== 1 ? 's' : ''} en este proyecto</p>
+      <p class="page-sub">${hists.length} de ${allHists.length} historia${allHists.length !== 1 ? 's' : ''}</p>
     </div>
     <div class="historias-actions">
       <input type="search" id="search-hu" class="form-control search-input" placeholder="Buscar historias…" aria-label="Buscar">
@@ -217,6 +245,8 @@ export function renderHistoriasList() {
     </div>
   </div>
 
+  ${_renderFilterBar(allHists)}
+
   <div id="historias-content">${hists.length ? renderHuContent(hists, vista) : renderEmptyState()}</div>
 
   <div class="sel-bar hidden" id="sel-bar">
@@ -235,6 +265,25 @@ export function renderHistoriasList() {
 </div>`;
 
   setupListaEvents(hists);
+}
+
+function _renderFilterBar(allHists) {
+  const tipos      = [...new Set(allHists.map(h => h.tipo).filter(Boolean))];
+  const prioridades = ['Critical', 'High', 'Medium', 'Low'].filter(p => allHists.some(h => h.prioridad === p));
+  if (!tipos.length && !prioridades.length) return '';
+  const tipoPills = tipos.map(t =>
+    `<button class="filter-pill${_filtros.tipo === t ? ' active' : ''}" data-filter-tipo="${esc(t)}">${esc(t)}</button>`
+  ).join('');
+  const prioPills = prioridades.map(p =>
+    `<button class="filter-pill${_filtros.prioridad === p ? ' active' : ''}" data-filter-prio="${esc(p)}">${esc(p)}</button>`
+  ).join('');
+  const sep = tipos.length && prioridades.length ? '<div class="filter-separator"></div>' : '';
+  const hasFilter = _filtros.tipo || _filtros.prioridad;
+  return `<div class="filter-bar" id="filter-bar">
+    <span class="filter-bar-label">Filtrar</span>
+    ${tipoPills}${sep}${prioPills}
+    ${hasFilter ? `<button class="filter-pill" id="btn-clear-filters" style="opacity:.6">✕ Limpiar</button>` : ''}
+  </div>`;
 }
 
 function renderHuContent(hists, vista) {
@@ -288,13 +337,25 @@ function renderHuCard(h) {
   </article>`;
 }
 
+function _sortThClass(col) {
+  if (_sortCol !== col) return 'sortable';
+  return `sortable sort-${_sortDir}`;
+}
+function _sortIcon(col) {
+  if (_sortCol !== col) return '<i class="sort-icon">⇅</i>';
+  return `<i class="sort-icon">${_sortDir === 'asc' ? '↑' : '↓'}</i>`;
+}
+
 function renderListaView(hists) {
   return `<div class="tabla-wrap">
   <table class="tabla-hu" aria-label="Lista de historias">
     <thead>
       <tr>
         <th class="col-check"><input type="checkbox" id="check-all" aria-label="Seleccionar todo"></th>
-        <th>ID</th><th>Tipo</th><th>Resumen</th><th>Prioridad</th>
+        <th class="${_sortThClass('id')}"     data-sort="id">ID ${_sortIcon('id')}</th>
+        <th class="${_sortThClass('tipo')}"   data-sort="tipo">Tipo ${_sortIcon('tipo')}</th>
+        <th class="${_sortThClass('resumen')}" data-sort="resumen">Resumen ${_sortIcon('resumen')}</th>
+        <th class="${_sortThClass('prioridad')}" data-sort="prioridad">Prioridad ${_sortIcon('prioridad')}</th>
         <th>Etiquetas</th><th>Acciones</th>
       </tr>
     </thead>
@@ -360,6 +421,22 @@ function setupListaEvents(hists) {
     });
   });
 
+  // Filter pills
+  document.getElementById('filter-bar')?.addEventListener('click', e => {
+    const tipoPill = e.target.closest('[data-filter-tipo]');
+    const prioPill = e.target.closest('[data-filter-prio]');
+    const clear    = e.target.closest('#btn-clear-filters');
+    if (tipoPill) {
+      _filtros.tipo = _filtros.tipo === tipoPill.dataset.filterTipo ? null : tipoPill.dataset.filterTipo;
+      renderHistoriasList(); return;
+    }
+    if (prioPill) {
+      _filtros.prioridad = _filtros.prioridad === prioPill.dataset.filterPrio ? null : prioPill.dataset.filterPrio;
+      renderHistoriasList(); return;
+    }
+    if (clear) { _filtros.tipo = null; _filtros.prioridad = null; renderHistoriasList(); }
+  });
+
   // Banner dismiss / restore
   const bannerEl = document.getElementById('img-cta-banner');
   document.getElementById('btn-banner-dismiss')?.addEventListener('click', () => {
@@ -391,6 +468,21 @@ function bindContentEvents() {
 
   if (state.modoSeleccion) content.classList.add('selection-mode');
 
+  // Sort header clicks — delegated on content so they survive content.innerHTML replacements
+  content.addEventListener('click', e => {
+    const th = e.target.closest('th[data-sort]');
+    if (th) {
+      const col = th.dataset.sort;
+      if (_sortCol === col) _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
+      else { _sortCol = col; _sortDir = 'asc'; }
+      // Re-render only the table content (keep the existing event listener)
+      const sorted = _applyFiltersAndSort(state.historias.filter(h => h.proyectoId === state.proyectoActivoId));
+      content.innerHTML = renderListaView(sorted);
+      if (state.modoSeleccion) content.classList.add('selection-mode');
+      sorted.forEach(h => _syncSeleccionVisual(h.id));
+    }
+  });
+
   // Single click listener via delegation — called only ONCE per #historias-content node.
   // Vista switches and search only replace content.innerHTML, so this listener persists.
   content.addEventListener('click', e => {
@@ -411,10 +503,11 @@ function bindContentEvents() {
     if (btn) {
       const { action, id } = btn.dataset;
       if (action === 'del') {
-        showConfirm('¿Eliminar historia?', `${id} será eliminada permanentemente.`, () => {
-          eliminarHistoriaById(id);
-          renderHistoriasList();
-          toast('Historia eliminada');
+        const saved = state.historias.find(h => h.id === id);
+        eliminarHistoriaById(id);
+        renderHistoriasList();
+        toastAction('Historia eliminada', 'Deshacer', () => {
+          if (saved) { state.historias.push(saved); guardar(); renderHistoriasList(); }
         });
       }
       if (action === 'dup') {
@@ -539,11 +632,18 @@ function setupSelBar() {
   });
   document.getElementById('btn-sel-del')?.addEventListener('click', () => {
     if (!state.seleccionadas.size) return;
-    showConfirm('¿Eliminar seleccionadas?', `Se eliminarán ${state.seleccionadas.size} historias.`, () => {
-      [...state.seleccionadas].forEach(id => eliminarHistoriaById(id));
+    const n = state.seleccionadas.size;
+    // Snapshot antes de eliminar para poder hacer undo
+    const saved = [...state.seleccionadas].map(id => state.historias.find(h => h.id === id)).filter(Boolean);
+    showConfirm('¿Eliminar seleccionadas?', `Se eliminarán ${n} historias. Podrás deshacer por 5 segundos.`, () => {
+      saved.forEach(h => eliminarHistoriaById(h.id));
       state.seleccionadas.clear();
       renderHistoriasList();
-      toast('Historias eliminadas');
+      toastAction(`${n} historia${n !== 1 ? 's' : ''} eliminada${n !== 1 ? 's' : ''}`, 'Deshacer', () => {
+        state.historias.push(...saved);
+        guardar();
+        renderHistoriasList();
+      });
     });
   });
 }

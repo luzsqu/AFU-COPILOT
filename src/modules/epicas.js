@@ -3,7 +3,8 @@ import { guardar } from './storage.js';
 import { guardarEpicas } from './storage.js';
 
 export function generarEpicaId() {
-  return 'EP-' + Date.now().toString(36).toUpperCase();
+  return 'EP-' + Date.now().toString(36).toUpperCase()
+    + Math.random().toString(36).slice(2, 5).toUpperCase();
 }
 
 export function crearEpicaData(nombre, color) {

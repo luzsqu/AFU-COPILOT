@@ -23,7 +23,9 @@ export function pct(items) {
 }
 
 export function generarId() {
-  return 'HU-' + Date.now().toString(36).toUpperCase();
+  // timestamp base36 + 4 chars random → colisiones prácticamente imposibles
+  return 'HU-' + Date.now().toString(36).toUpperCase()
+    + Math.random().toString(36).slice(2, 6).toUpperCase();
 }
 
 export function generarTCId(huId, n) {
