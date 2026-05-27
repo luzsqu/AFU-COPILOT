@@ -324,7 +324,7 @@ ${docs.length ? `
   });
   addFileBtn.addEventListener('click', () => {
     if (!_fileReady) return;
-    proj.contexto.push({ id: Date.now().toString(36), ..._fileReady, creadoEn: new Date().toISOString() });
+    proj.contexto.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), ..._fileReady, creadoEn: new Date().toISOString() });
     guardar();
     renderContextModalBody(proj);
     syncContextBadge(proj);
