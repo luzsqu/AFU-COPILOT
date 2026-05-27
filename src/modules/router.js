@@ -48,6 +48,13 @@ export function router() {
   if (route.auth && !state.usuario) { navigate('/login'); return; }
   if (!route.auth && state.usuario && path === '/login') { navigate(state.proyectoActivoId ? '/dashboard' : '/projects'); return; }
 
+  // Resetear modo selección al salir de la sección de historias para evitar
+  // que el sel-bar reaparezca con historias marcadas al volver.
+  if (!path.startsWith('/historias')) {
+    state.modoSeleccion = false;
+    state.seleccionadas.clear();
+  }
+
   const sidebar     = document.getElementById('sidebar');
   const mainContent = document.getElementById('main-content');
   const view        = document.getElementById('view');

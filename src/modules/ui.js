@@ -427,11 +427,12 @@ function bindContentEvents() {
     const cb = e.target.closest('.row-check');
     if (cb) { toggleSeleccion(cb.dataset.id); return; }
     if (e.target.id === 'check-all') {
-      const hists = state.historias.filter(h => h.proyectoId === state.proyectoActivoId);
-      if (e.target.checked) hists.forEach(h => state.seleccionadas.add(h.id));
-      else state.seleccionadas.clear();
+      // Usar solo las filas visibles en el DOM para respetar el filtro de búsqueda activo.
+      const visibleIds = [...content.querySelectorAll('tr[data-id]')].map(r => r.dataset.id);
+      if (e.target.checked) visibleIds.forEach(id => state.seleccionadas.add(id));
+      else visibleIds.forEach(id => state.seleccionadas.delete(id));
       updateSelBar();
-      hists.forEach(h => _syncSeleccionVisual(h.id));
+      visibleIds.forEach(id => _syncSeleccionVisual(id));
     }
   });
 }
@@ -469,6 +470,14 @@ function updateSelBar() {
   cnt.textContent = `${n} seleccionada${n !== 1 ? 's' : ''}`;
   if (n > 0 || state.modoSeleccion) bar.classList.remove('hidden');
   else bar.classList.add('hidden');
+
+  // Sincronizar el checkbox "Seleccionar todo" con el estado real:
+  // marcarlo si todas las filas visibles están seleccionadas.
+  const checkAll = document.getElementById('check-all');
+  if (checkAll) {
+    const visibleIds = [...document.querySelectorAll('#historias-content tr[data-id]')].map(r => r.dataset.id);
+    checkAll.checked = visibleIds.length > 0 && visibleIds.every(id => state.seleccionadas.has(id));
+  }
 }
 
 function setupSelBar() {

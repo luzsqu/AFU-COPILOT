@@ -208,6 +208,10 @@ function crearProyecto(e) {
 
 function activarProyecto(id) {
   state.proyectoActivoId = id;
+  // Limpiar selección al cambiar de proyecto para evitar operar
+  // sobre historias de un proyecto distinto al activo.
+  state.seleccionadas.clear();
+  state.modoSeleccion = false;
   guardar();
   navigate('/dashboard');
 }
