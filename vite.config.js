@@ -1,9 +1,23 @@
 import { defineConfig, loadEnv } from 'vite';
+// @ts-ignore — vitest types se resuelven en runtime
+
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
+    // ── Vitest ──────────────────────────────────────────────────────────────
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: ['./tests/setup.js'],
+      include: ['src/**/*.test.js', 'tests/unit/**/*.test.js'],
+      exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**'],
+      coverage: {
+        reporter: ['text', 'html'],
+        exclude: ['node_modules/', 'dist/', 'tests/e2e/'],
+      },
+    },
     plugins: [
       {
         name: 'jira-server-proxy',

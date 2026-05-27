@@ -3,3 +3,8 @@ dist/
 .env
 .env.local
 .env.*.local
+
+# Test artifacts
+test-results/
+playwright-report/
+coverage/
