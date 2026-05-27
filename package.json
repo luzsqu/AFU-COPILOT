@@ -1,0 +1,14 @@
+{
+  "name": "afu-copilot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0",
+    "vite": "^5.0.0"
+  }
+}

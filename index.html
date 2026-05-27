@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analista HU — ISTQB</title>
+<link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar hidden" aria-label="Navegación"></aside>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content" class="main-content">
+    <div id="breadcrumbs"></div>
+    <div id="view" class="view-container"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-wrap" aria-live="polite" aria-atomic="false"></div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay hidden" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="modal-box modal-box-sm">
+    <h3 id="confirm-title" class="modal-title"></h3>
+    <p id="confirm-msg" class="modal-msg"></p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="confirm-cancel">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-ok">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div class="palette-overlay hidden" id="cmd-palette" role="dialog" aria-modal="true" aria-label="Paleta de comandos">
+  <div class="palette-box">
+    <div class="palette-header">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="var(--text-muted)" stroke-width="1.5"/><path d="M11 11l3 3" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="palette-input" class="palette-input" placeholder="Buscar o ejecutar acción…" autocomplete="off" spellcheck="false">
+      <kbd class="palette-esc">Esc</kbd>
+    </div>
+    <ul id="palette-list" class="palette-list" role="listbox"></ul>
+  </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

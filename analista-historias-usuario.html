@@ -1,0 +1,2258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analista de Historias de Usuario — ISTQB</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#e87722;--primary-dark:#c2630d;--primary-xdark:#9a4f0a;
+  --primary-light:#f97316;--primary-bg:#fff7ed;--primary-bg2:#fed7aa;
+  --secondary:#f59e0b;--secondary-dark:#d97706;
+  --success:#16a34a;--success-light:#f0fdf4;--success-dark:#15803d;
+  --warning:#f59e0b;--warning-light:#fffbeb;
+  --danger:#ef4444;--danger-light:#fef2f2;
+  --surface:#fff;--surface-2:#f9fafb;--surface-3:#f3f4f6;
+  --border:#e5e7eb;--border-2:#d1d5db;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;
+  --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;
+  --gray-800:#1f2937;--gray-900:#111827;
+  --radius:12px;--radius-sm:8px;--radius-xs:5px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:0 16px 40px rgba(0,0,0,.12),0 4px 8px rgba(0,0,0,.06);
+  --shadow-card:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --tr:.18s ease;
+  --font:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{font-family:var(--font);background:var(--surface-3);color:var(--gray-900);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+header{background:#fff;color:var(--gray-900);padding:1.125rem 2rem;border-bottom:1px solid var(--border)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;gap:1rem;flex-wrap:wrap}
+.header-brand{display:flex;align-items:center;gap:.75rem}
+.header-icon{width:38px;height:38px;background:var(--primary-bg);border:1px solid var(--primary-bg2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.header-title h1{font-size:1.15rem;font-weight:700;letter-spacing:-.02em;color:var(--gray-900)}
+.header-title p{font-size:.71rem;color:var(--gray-500)}
+.header-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+
+/* ═══════════════════════════════════════════
+   DASHBOARD METRICS
+═══════════════════════════════════════════ */
+.dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem}
+.metric-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:.875rem 1rem;transition:box-shadow var(--tr)}
+.metric-card:hover{box-shadow:var(--shadow-md)}
+.metric-label{font-size:.64rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.metric-value{font-size:1.875rem;font-weight:800;line-height:1;margin-top:.25rem;color:var(--primary)}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.app-layout{display:grid;grid-template-columns:360px 1fr;gap:1.375rem;padding:1.375rem;max-width:1600px;margin:0 auto}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR & CARD CONTAINERS
+═══════════════════════════════════════════ */
+.sidebar{position:sticky;top:1.375rem;height:fit-content;display:flex;flex-direction:column;gap:.75rem}
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border)}
+.card-header{padding:.875rem 1.125rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;background:#fff}
+.card-header h2{font-size:.88rem;font-weight:700;color:var(--gray-800);letter-spacing:-.01em}
+.card-body{padding:1.125rem}
+
+/* ═══════════════════════════════════════════
+   FORM
+═══════════════════════════════════════════ */
+.form-group{margin-bottom:.875rem}
+.form-label{display:block;font-size:.74rem;font-weight:600;color:var(--gray-700);margin-bottom:.28rem}
+.form-control{
+  width:100%;padding:.48rem .78rem;
+  border:1.5px solid var(--border-2);border-radius:var(--radius-sm);
+  font-size:.845rem;color:var(--gray-900);background:#fff;
+  transition:border-color var(--tr),box-shadow var(--tr);font-family:var(--font);
+}
+.form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(232,119,34,.1)}
+.form-control::placeholder{color:var(--gray-400)}
+textarea.form-control{resize:vertical;min-height:68px}
+select.form-control{cursor:pointer}
+option{background:#fff;color:var(--gray-900)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.divider{height:1px;background:var(--border);margin:.625rem 0}
+.input-wrap{position:relative}
+.input-wrap .form-control{padding-right:2.25rem}
+.input-toggle{position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:.82rem;color:var(--gray-400);padding:.2rem}
+
+/* ═══════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.38rem;
+  padding:.48rem .95rem;border:none;border-radius:var(--radius-sm);
+  font-size:.835rem;font-weight:600;cursor:pointer;
+  transition:all var(--tr);font-family:var(--font);
+  white-space:nowrap;text-decoration:none;
+}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);box-shadow:0 3px 10px rgba(232,119,34,.3);transform:translateY(-1px)}
+.btn-secondary{background:#fff;color:var(--gray-700);border:1.5px solid var(--border-2)}
+.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300);color:var(--gray-900)}
+.btn-danger{background:var(--danger-light);color:#dc2626;border:1.5px solid #fecaca}
+.btn-danger:hover{background:#fee2e2;color:#b91c1c}
+.btn-purple{background:var(--secondary);color:#fff;font-weight:700}
+.btn-purple:hover{background:var(--secondary-dark);box-shadow:0 3px 10px rgba(245,158,11,.25);transform:translateY(-1px)}
+.btn-sm{padding:.26rem .58rem;font-size:.755rem}
+.btn-full{width:100%}
+.btn-ghost-white{background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary-bg2)}
+.btn-ghost-white:hover{background:var(--primary-bg2)}
+.btn-white{background:#fff;color:var(--primary);border:1px solid var(--primary-bg2);box-shadow:var(--shadow)}
+.btn-white:hover{background:var(--primary-bg)}
+
+/* ═══════════════════════════════════════════
+   SEARCH
+═══════════════════════════════════════════ */
+.search-filter{display:flex;gap:.5rem;margin-bottom:1rem}
+.search-wrap{position:relative;flex:1}
+.search-icon{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--gray-400);pointer-events:none;font-size:.82rem}
+#hu-buscar{padding-left:2.1rem}
+
+/* ═══════════════════════════════════════════
+   HU CARDS
+═══════════════════════════════════════════ */
+#cards-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.875rem;align-content:start}
+.hu-card{
+  background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:0;cursor:pointer;
+  transition:box-shadow var(--tr),transform var(--tr),border-color var(--tr);
+  border:1px solid var(--border);position:relative;overflow:hidden;
+}
+.hu-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary)}
+.hu-card.ia-card::before{background:var(--secondary)}
+.hu-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.09);transform:translateY(-2px);border-color:var(--border-2)}
+.hu-card-inner{padding:.95rem}
+.hu-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:.4rem;margin-bottom:.4rem}
+.hu-id{font-size:.62rem;font-weight:700;color:var(--primary-dark);background:var(--primary-bg);border:1px solid var(--primary-bg2);padding:.1rem .4rem;border-radius:4px;font-family:'Courier New',monospace;white-space:nowrap}
+.hu-card-title{font-size:.875rem;font-weight:700;color:var(--gray-900);line-height:1.35;margin-bottom:.28rem;letter-spacing:-.01em}
+.hu-card-story{font-size:.75rem;color:var(--gray-500);margin-bottom:.55rem;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hu-card-story strong{color:var(--gray-700);font-weight:600}
+.hu-card-badges{display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.65rem}
+.badge{font-size:.62rem;font-weight:600;padding:.16rem .44rem;border-radius:20px;border:1px solid transparent}
+.badge-alta{background:#fef2f2;color:#dc2626;border-color:#fecaca}
+.badge-media{background:#fffbeb;color:#d97706;border-color:#fde68a}
+.badge-baja{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
+.badge-tipo{background:var(--primary-bg);color:var(--primary-dark);border-color:var(--primary-bg2)}
+.badge-crit{background:var(--gray-100);color:var(--gray-500);border-color:var(--border)}
+.badge-ia{background:#f5f3ff;color:#7c3aed;border-color:#ddd6fe}
+.progress-labels{display:flex;justify-content:space-between;font-size:.61rem;color:var(--gray-400);margin-bottom:.15rem;font-weight:500}
+.progress-bar-wrap{height:4px;background:var(--gray-100);border-radius:9999px;overflow:hidden;margin-bottom:.15rem}
+.progress-bar{height:100%;border-radius:9999px;transition:width .5s ease}
+.pb-dor{background:var(--primary)}
+.pb-dod{background:var(--success)}
+
+/* ═══════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════ */
+.empty-state{grid-column:1/-1;text-align:center;padding:3.5rem 1.5rem;color:var(--gray-400);background:#fff;border-radius:var(--radius);border:1.5px dashed var(--border-2)}
+.empty-state .ei{font-size:2.75rem;margin-bottom:.75rem;display:block}
+.empty-state h3{font-size:.98rem;color:var(--gray-600);margin-bottom:.28rem;font-weight:700}
+.empty-state p{font-size:.8rem;color:var(--gray-400);max-width:300px;margin:0 auto}
+
+/* ═══════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════ */
+#modal-back{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:900;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto}
+#modal-back.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.13),0 4px 12px rgba(0,0,0,.06);width:100%;max-width:900px;margin:auto;overflow:hidden;animation:slideIn .22s cubic-bezier(.22,.68,0,1.2);border:1px solid var(--border)}
+@keyframes slideIn{from{opacity:0;transform:translateY(-12px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-header{background:var(--surface-2);color:var(--gray-900);padding:1.125rem 1.375rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--border)}
+.modal-header h2{font-size:1rem;font-weight:700;margin-bottom:.18rem;color:var(--gray-900)}
+.modal-meta{font-size:.71rem;color:var(--gray-500);display:flex;gap:.6rem;flex-wrap:wrap}
+.modal-close{background:var(--gray-100);border:1px solid var(--border-2);color:var(--gray-500);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:.88rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--tr)}
+.modal-close:hover{background:var(--gray-200);color:var(--gray-800)}
+.modal-close:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.modal-body{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1.125rem}
+.modal-section{grid-column:1/-1}
+.modal-section.half{grid-column:span 1}
+.section-title{font-size:.7rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.09em;margin-bottom:.7rem;padding-bottom:.38rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.story-box{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.8rem .9rem;font-size:.845rem;line-height:1.7;color:var(--gray-800)}
+.story-box strong{color:var(--primary-dark);font-weight:700}
+
+/* ═══════════════════════════════════════════
+   GHERKIN
+═══════════════════════════════════════════ */
+.gherkin-scenarios{display:flex;flex-direction:column;gap:.625rem}
+.gherkin-scenario{background:#f8fafc;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
+.gherkin-hdr{background:#fff;padding:.35rem .8rem;font-size:.69rem;font-weight:600;color:var(--gray-600);display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.g-badge{font-size:.6rem;padding:.1rem .32rem;border-radius:4px;font-weight:700}
+.gb-pos{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.gb-neg{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.gb-bnd{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.gb-nf{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.gb-cnd{background:#fdf4ff;color:#9333ea;border:1px solid #e9d5ff}
+.gherkin-code{padding:.7rem .875rem;font-family:'Courier New',Consolas,monospace;font-size:.77rem;line-height:1.85;color:#334155;overflow-x:auto;white-space:pre;background:#f8fafc}
+.kw-esc{color:#7c3aed;font-weight:700}
+.kw-dado{color:#0f766e;font-weight:600}
+.kw-cuando{color:#1d4ed8;font-weight:600}
+.kw-entonces{color:#16a34a;font-weight:600}
+.kw-y{color:#6b7280}
+
+/* ═══════════════════════════════════════════
+   CHECKLIST
+═══════════════════════════════════════════ */
+.checklist{display:flex;flex-direction:column;gap:.18rem}
+.cl-item{display:flex;align-items:flex-start;gap:.42rem;padding:.32rem .42rem;border-radius:var(--radius-xs);transition:background var(--tr)}
+.cl-item:hover{background:var(--gray-50)}
+.cl-item input[type=checkbox]{margin-top:.12rem;width:14px;height:14px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+.cl-item label{font-size:.755rem;color:var(--gray-700);cursor:pointer;line-height:1.45}
+.cl-item.checked label{text-decoration:line-through;color:var(--gray-400)}
+.prog-row{display:flex;align-items:center;gap:.7rem;margin-bottom:.7rem}
+.prog-track{flex:1;height:5px;background:var(--gray-100);border-radius:9999px;overflow:hidden}
+.prog-fill{height:100%;border-radius:9999px;transition:width .4s ease}
+.prog-fill.dor{background:var(--primary)}
+.prog-fill.dod{background:var(--success)}
+.prog-pct{font-size:.76rem;font-weight:700;color:var(--gray-700);min-width:34px;text-align:right}
+
+/* ═══════════════════════════════════════════
+   MODAL FOOTER
+═══════════════════════════════════════════ */
+.modal-footer{padding:.8rem 1.375rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--surface-2);flex-wrap:wrap}
+
+/* ═══════════════════════════════════════════
+   IMPORT PANEL
+═══════════════════════════════════════════ */
+.import-card-header{padding:.78rem 1.125rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;transition:background var(--tr)}
+.import-card-header:hover{background:var(--gray-50)}
+.import-chevron{margin-left:auto;font-size:.7rem;transition:transform .2s;color:var(--gray-400)}
+.import-chevron.open{transform:rotate(180deg)}
+.import-body{padding:1.125rem;display:none}
+.import-body.open{display:block}
+.import-tabs{display:flex;gap:.22rem;margin-bottom:.875rem;background:var(--gray-100);padding:.22rem;border-radius:var(--radius-sm)}
+.import-tab{flex:1;padding:.36rem .5rem;border:none;border-radius:5px;font-size:.74rem;font-weight:600;cursor:pointer;background:transparent;color:var(--gray-500);transition:all var(--tr);font-family:var(--font)}
+.import-tab.active{background:#fff;color:var(--gray-900);box-shadow:var(--shadow)}
+.dropzone{border:2px dashed var(--border-2);border-radius:var(--radius-sm);padding:1.25rem .875rem;text-align:center;cursor:pointer;transition:all var(--tr);margin-bottom:.875rem;background:var(--surface-2)}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--primary);background:var(--primary-bg)}
+.dz-icon{font-size:1.75rem;margin-bottom:.38rem;display:block}
+.dz-text{font-size:.77rem;color:var(--gray-700);margin-bottom:.16rem;font-weight:500}
+.dz-hint{font-size:.69rem;color:var(--gray-400)}
+.img-preview{position:relative;margin-bottom:.875rem;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);background:var(--gray-50)}
+.img-preview img{width:100%;max-height:185px;object-fit:contain;display:block}
+.img-preview-remove{position:absolute;top:.375rem;right:.375rem}
+.api-note{font-size:.68rem;color:var(--gray-400);margin-top:.28rem;line-height:1.5}
+.api-note a{color:var(--primary);text-decoration:none;font-weight:500}
+.api-note a:hover{text-decoration:underline}
+.figma-preview{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.72rem;margin-bottom:.875rem;font-size:.76rem;color:var(--gray-600);display:none}
+.figma-preview.visible{display:block}
+.figma-preview strong{color:var(--gray-800);font-weight:600}
+
+/* ═══════════════════════════════════════════
+   IA BANNER
+═══════════════════════════════════════════ */
+.ia-banner{background:var(--primary-bg);border:1px solid var(--primary-bg2);border-radius:var(--radius-sm);padding:.65rem .875rem;margin-bottom:.875rem;font-size:.79rem;color:var(--primary-dark);display:none}
+.ia-banner.visible{display:flex;align-items:center;gap:.45rem}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+#toast-wrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:3000;display:flex;flex-direction:column;gap:.4rem}
+.toast{background:#fff;color:var(--gray-800);padding:.55rem .95rem;border-radius:var(--radius-sm);font-size:.8rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.11),0 2px 6px rgba(0,0,0,.06);animation:fadeUp .25s cubic-bezier(.22,.68,0,1.2);display:flex;align-items:center;gap:.42rem;max-width:300px;border:1px solid var(--border)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════
+   WORKFLOW STEPS
+═══════════════════════════════════════════ */
+.wf-steps{display:flex;align-items:center;gap:.25rem;margin-bottom:.875rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.55rem .75rem}
+.wf-step{display:flex;align-items:center;gap:.28rem;font-size:.67rem;color:var(--gray-600);flex:1;justify-content:center;text-align:center;line-height:1.35;font-weight:500}
+.wf-num{background:var(--primary);color:#fff;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0}
+.wf-arrow{color:var(--gray-300);font-size:.68rem;flex-shrink:0}
+
+/* ═══════════════════════════════════════════
+   PROMPT BOX
+═══════════════════════════════════════════ */
+.prompt-box{background:var(--surface-2);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:.875rem;border:1px solid var(--border)}
+.prompt-box-header{background:#fff;padding:.4rem .8rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;border-bottom:1px solid var(--border)}
+.prompt-box-label{font-size:.68rem;font-weight:700;color:var(--gray-500);letter-spacing:.04em}
+.prompt-textarea{width:100%;background:transparent;border:none;padding:.6rem .8rem;font-family:'Courier New',monospace;font-size:.7rem;color:var(--gray-700);resize:none;height:115px;cursor:text;outline:none;line-height:1.55}
+.prompt-textarea:focus{outline:none}
+.btn-copy{background:var(--primary-bg);border:1px solid var(--primary-bg2);color:var(--primary);padding:.24rem .52rem;border-radius:5px;font-size:.68rem;font-weight:600;cursor:pointer;transition:all var(--tr);white-space:nowrap}
+.btn-copy:hover{background:var(--primary-bg2);color:var(--primary-dark)}
+.btn-copy.copied{background:#f0fdf4;border-color:#bbf7d0;color:#16a34a}
+
+/* ═══════════════════════════════════════════
+   IMPORT INSTRUCTIONS
+═══════════════════════════════════════════ */
+.import-instruction{background:var(--primary-bg);border:1px solid var(--primary-bg2);border-radius:var(--radius-sm);padding:.55rem .875rem;margin-bottom:.875rem;font-size:.75rem;color:var(--primary-dark);font-weight:500}
+.import-instruction ol{padding-left:1.1rem;margin-top:.28rem}
+.import-instruction li{margin-bottom:.2rem;line-height:1.45;color:var(--gray-700)}
+
+/* ═══════════════════════════════════════════
+   JSON IMPORT TAB
+═══════════════════════════════════════════ */
+.json-paste-area{width:100%;min-height:120px;padding:.6rem .8rem;border:1.5px solid var(--border-2);border-radius:var(--radius-sm);font-family:'Courier New',monospace;font-size:.72rem;color:var(--gray-800);resize:vertical;line-height:1.55;background:#fff}
+.json-paste-area:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(232,119,34,.1)}
+.or-divider{display:flex;align-items:center;gap:.5rem;margin:.5rem 0}
+.or-divider hr{flex:1;border:none;border-top:1px solid var(--border)}
+.or-divider span{font-size:.68rem;color:var(--gray-400);font-weight:500}
+
+/* ═══════════════════════════════════════════
+   FORMAT EXAMPLE
+═══════════════════════════════════════════ */
+.format-pre{background:var(--surface-2);color:var(--gray-700);padding:.875rem;border-radius:var(--radius-sm);font-size:.68rem;line-height:1.65;overflow-x:auto;font-family:'Courier New',monospace;white-space:pre;margin-top:.5rem;border:1px solid var(--border)}
+
+/* ═══════════════════════════════════════════
+   EPICS PANEL
+═══════════════════════════════════════════ */
+.epic-create-row{display:flex;gap:.45rem;align-items:center;margin-bottom:.5rem}
+.epic-color-picker{display:flex;gap:.28rem;margin-bottom:.6rem;flex-wrap:wrap;align-items:center}
+.epic-color-picker-label{font-size:.68rem;font-weight:600;color:var(--gray-500);margin-right:.1rem}
+.epic-color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all var(--tr);flex-shrink:0}
+.epic-color-dot:hover{transform:scale(1.15)}
+.epic-color-dot.sel{border-color:var(--gray-800) !important;transform:scale(1.2)}
+.epic-list{display:flex;flex-direction:column;gap:.2rem;margin-top:.4rem}
+.epic-all-item{display:flex;align-items:center;gap:.42rem;padding:.32rem .55rem;border-radius:var(--radius-xs);cursor:pointer;font-size:.79rem;font-weight:600;color:var(--gray-600);transition:background var(--tr);border:1px solid transparent;margin-bottom:.18rem}
+.epic-all-item:hover{background:var(--gray-50)}
+.epic-all-item.active{background:var(--primary-bg);color:var(--primary-dark);border-color:var(--primary-bg2)}
+.epic-item{display:flex;align-items:center;gap:.5rem;padding:.35rem .55rem;border-radius:var(--radius-xs);cursor:pointer;transition:all var(--tr);border:1px solid transparent}
+.epic-item:hover{background:var(--gray-50)}
+.epic-item.active{background:var(--primary-bg);border-color:var(--primary-bg2)}
+.epic-item.active .epic-name{color:var(--primary-dark)}
+.epic-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.epic-name{font-size:.79rem;font-weight:600;color:var(--gray-700);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.epic-count{font-size:.64rem;color:var(--gray-500);background:var(--gray-100);padding:.08rem .36rem;border-radius:9999px;font-weight:600;flex-shrink:0}
+.epic-del{background:none;border:none;cursor:pointer;opacity:0;font-size:.7rem;transition:opacity var(--tr);color:var(--danger);padding:.1rem;line-height:1;flex-shrink:0}
+.epic-item:hover .epic-del{opacity:1}
+.badge-epic{color:#fff !important;border:none !important;font-size:.62rem;font-weight:700;padding:.16rem .44rem;border-radius:20px;text-shadow:0 1px 1px rgba(0,0,0,.25)}
+.epic-empty{text-align:center;color:var(--gray-400);font-size:.75rem;padding:.75rem 0}
+
+/* ═══════════════════════════════════════════
+   SELECTION MODE
+═══════════════════════════════════════════ */
+.hu-card-check{display:none;position:absolute;top:.85rem;left:.85rem;z-index:5;width:16px;height:16px;accent-color:var(--primary);cursor:pointer}
+.selection-mode .hu-card-check{display:block}
+.selection-mode .hu-card-inner{padding-left:2.5rem}
+.hu-card.selected{border-color:var(--primary) !important;background:#fff8f3 !important}
+.btn-sel-mode{border:1.5px solid var(--border-2);background:#fff;color:var(--gray-700);font-size:.77rem}
+.btn-sel-mode.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-sel-mode:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+
+/* ═══════════════════════════════════════════
+   SELECTION FLOATING BAR
+═══════════════════════════════════════════ */
+.sel-bar{position:fixed;bottom:1.75rem;left:50%;transform:translateX(-50%) translateY(20px);background:#fff;color:var(--gray-800);border-radius:99px;padding:.5rem .875rem;display:flex;align-items:center;gap:.42rem;box-shadow:0 8px 32px rgba(0,0,0,.13),0 2px 8px rgba(0,0,0,.07);z-index:500;white-space:nowrap;border:1px solid var(--border-2);opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s cubic-bezier(.22,.68,0,1.2)}
+.sel-bar.visible{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.sel-count{font-size:.77rem;font-weight:700;background:var(--primary-bg);padding:.18rem .6rem;border-radius:9999px;min-width:80px;text-align:center;color:var(--primary-dark)}
+.sel-btn{background:var(--gray-100);border:1px solid var(--border);color:var(--gray-700);padding:.28rem .7rem;border-radius:9999px;font-size:.74rem;font-weight:600;cursor:pointer;transition:background var(--tr);font-family:var(--font)}
+.sel-btn:hover{background:var(--gray-200);color:var(--gray-900)}
+.sel-divider{width:1px;height:13px;background:var(--border);flex-shrink:0}
+.sel-close{width:25px;height:25px;padding:0;border-radius:50%;background:var(--gray-100);border:1px solid var(--border-2);color:var(--gray-500);font-size:.78rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background var(--tr);font-family:var(--font)}
+.sel-close:hover{background:var(--gray-200);color:var(--gray-800)}
+
+/* ═══════════════════════════════════════════
+   CARD ACTION BUTTONS
+═══════════════════════════════════════════ */
+.card-actions{display:flex;gap:.22rem;align-items:center}
+.btn-card-action{background:none;border:1px solid transparent;color:var(--gray-400);padding:.18rem .32rem;border-radius:4px;font-size:.77rem;line-height:1;cursor:pointer;transition:all var(--tr)}
+.btn-card-action:hover{background:var(--gray-100);border-color:var(--border)}
+.btn-card-edit:hover{color:var(--primary);border-color:var(--primary-bg2)!important}
+.btn-card-copy:hover{color:#16a34a;border-color:#bbf7d0!important}
+.btn-card-del:hover{color:#dc2626;border-color:#fecaca!important}
+
+/* ═══════════════════════════════════════════
+   EDIT MODAL
+═══════════════════════════════════════════ */
+#edit-modal-back{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:950;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto}
+#edit-modal-back.open{display:flex}
+.edit-crit-item{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:.55rem;margin-bottom:.42rem}
+.edit-crit-item:last-child{margin-bottom:0}
+
+/* ═══════════════════════════════════════════
+   API DIRECT
+═══════════════════════════════════════════ */
+.api-key-bar{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;padding:.5rem .72rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.api-key-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--gray-300);transition:background var(--tr)}
+.api-key-dot.ok{background:var(--success)}
+.api-key-status{font-size:.7rem;font-weight:600;color:var(--gray-400);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.api-key-status.ok{color:var(--success-dark)}
+.cfg-expand{background:var(--gray-100);border:1px solid var(--border);color:var(--gray-500);padding:.2rem .5rem;border-radius:4px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all var(--tr);font-family:var(--font)}
+.cfg-expand:hover{background:var(--gray-200);color:var(--gray-800)}
+.api-cfg-panel{padding:.75rem;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:.75rem;display:none}
+.api-cfg-panel.open{display:block}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(232,119,34,.25);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-gen-direct{margin-top:.5rem}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:1000px){
+  .app-layout{grid-template-columns:1fr;padding:1rem}
+  .sidebar{position:static}
+  .modal-body{grid-template-columns:1fr}
+  .modal-section.half{grid-column:1/-1}
+  .dashboard{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  header{padding:.875rem 1rem}
+  .header-top{flex-direction:column;align-items:flex-start}
+  .header-actions{width:100%}
+  .header-actions .btn{flex:1}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <div class="header-brand">
+      <div class="header-icon" aria-hidden="true">📋</div>
+      <div class="header-title">
+        <h1>Analista de Historias de Usuario</h1>
+        <p>Criterios de aceptación · ISTQB Foundation Level · DoR &amp; DoD · IA Vision</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost-white btn-sm" onclick="cargarEjemplos()">✨ Cargar ejemplos</button>
+      <button class="btn btn-white btn-sm" onclick="exportarTodo()">⬇ Exportar Markdown</button>
+    </div>
+  </div>
+  <div class="dashboard" role="region" aria-label="Métricas">
+    <div class="metric-card"><div class="metric-label">Total historias</div><div class="metric-value" id="m-total">0</div></div>
+    <div class="metric-card"><div class="metric-label">Listas (DoR 100%)</div><div class="metric-value" id="m-listas">0</div></div>
+    <div class="metric-card"><div class="metric-label">Terminadas (DoD 100%)</div><div class="metric-value" id="m-term">0</div></div>
+    <div class="metric-card"><div class="metric-label">Criterios generados</div><div class="metric-value" id="m-crit">0</div></div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" aria-label="Panel lateral">
+
+    <!-- Formulario manual -->
+    <div class="card">
+      <div class="card-header"><span aria-hidden="true">✏️</span><h2>Nueva Historia de Usuario</h2></div>
+      <div class="card-body">
+        <form id="form-hu" onsubmit="crearHistoria(event)" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="hu-titulo">Título *</label>
+            <input type="text" id="hu-titulo" class="form-control" placeholder="Título descriptivo de la historia" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="hu-como">Como (rol) *</label>
+            <input type="text" id="hu-como" class="form-control" placeholder="usuario registrado, administrador…" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="hu-quiero">Quiero (acción) *</label>
+            <input type="text" id="hu-quiero" class="form-control" placeholder="poder iniciar sesión con email y contraseña…" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="hu-para">Para (objetivo/valor) *</label>
+            <input type="text" id="hu-para" class="form-control" placeholder="acceder a mi cuenta de forma segura…" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="hu-desc">Descripción de la feature</label>
+            <textarea id="hu-desc" class="form-control" rows="3" placeholder="Contexto, restricciones. Palabras clave: login, email, pago, API, archivo, reporte, búsqueda, notificación, permisos, responsive…"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" for="hu-prior">Prioridad</label>
+              <select id="hu-prior" class="form-control">
+                <option>Alta</option><option selected>Media</option><option>Baja</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" for="hu-tipo">Tipo de prueba</label>
+              <select id="hu-tipo" class="form-control">
+                <option>Funcional</option><option>No funcional</option>
+                <option>Integración</option><option>UI/UX</option><option>Seguridad</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:.75rem;margin-bottom:0">
+            <label class="form-label" for="hu-epica">Épica (opcional)</label>
+            <select id="hu-epica" class="form-control">
+              <option value="">Sin épica</option>
+            </select>
+          </div>
+          <div class="divider"></div>
+          <button type="submit" class="btn btn-primary btn-full" id="btn-crear">＋ Crear Historia de Usuario</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ÉPICAS -->
+    <div class="card" id="card-epicas">
+      <div class="import-card-header" onclick="toggleEpicas()" aria-expanded="false" aria-controls="epicas-body">
+        <span aria-hidden="true">🗂</span>
+        <h2 style="font-size:1rem;font-weight:700">Épicas</h2>
+        <span id="epic-total-badge" style="margin-left:.5rem;font-size:.65rem;background:var(--primary-bg);color:var(--primary);padding:.15rem .45rem;border-radius:4px;font-weight:700">0</span>
+        <span class="import-chevron" id="epicas-chevron">▼</span>
+      </div>
+      <div class="import-body" id="epicas-body">
+        <!-- Color picker -->
+        <div class="epic-color-picker" id="epic-color-picker">
+          <span class="epic-color-picker-label">Color:</span>
+        </div>
+        <!-- Create form -->
+        <div class="epic-create-row">
+          <input type="text" id="epic-nombre" class="form-control" placeholder="Nombre de la épica…" maxlength="60"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();crearEpica()}">
+          <button class="btn btn-primary btn-sm" onclick="crearEpica()" title="Crear épica">＋</button>
+        </div>
+        <!-- List -->
+        <div class="epic-list" id="epic-list">
+          <div class="epic-empty">Sin épicas — crea la primera arriba</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORTAR CON IA — sin API keys -->
+    <div class="card" id="card-importar">
+      <div class="import-card-header" onclick="toggleImportar()" aria-expanded="false" aria-controls="importar-body">
+        <span aria-hidden="true">🤖</span>
+        <h2 style="font-size:1rem;font-weight:600">Importar con IA</h2>
+        <span style="margin-left:auto;font-size:.65rem;background:#f3e8ff;color:#6d28d9;padding:.15rem .4rem;border-radius:4px;font-weight:700;margin-right:.25rem">FUNCIONA CON CUALQUIER IA</span>
+        <span class="import-chevron" id="importar-chevron">▼</span>
+      </div>
+      <div class="import-body" id="importar-body">
+
+        <!-- API Key bar -->
+        <div class="api-key-bar">
+          <div class="api-key-dot" id="api-dot"></div>
+          <span class="api-key-status" id="api-status-text">Sin API key — modo prompt manual</span>
+          <button class="cfg-expand" onclick="toggleCfgPanel()">⚙ Configurar</button>
+        </div>
+        <div class="api-cfg-panel" id="api-cfg-panel">
+          <div class="form-row" style="margin-bottom:.5rem">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" for="cfg-provider">Proveedor</label>
+              <select id="cfg-provider" class="form-control" onchange="updateModelOptions()">
+                <option value="claude">Claude (Anthropic)</option>
+                <option value="openai">OpenAI (GPT-4o)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" for="cfg-model">Modelo</label>
+              <select id="cfg-model" class="form-control"></select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:.5rem">
+            <label class="form-label" for="cfg-key">API Key</label>
+            <div class="input-wrap">
+              <input type="password" id="cfg-key" class="form-control" placeholder="sk-ant-... o sk-...">
+              <button class="input-toggle" type="button" onclick="togglePass('cfg-key')">👁</button>
+            </div>
+            <p class="api-note">Tu key se guarda solo en tu navegador (localStorage). No se envía a ningún servidor propio.</p>
+          </div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-primary btn-sm" onclick="guardarConfigIA()">💾 Guardar</button>
+            <button class="btn btn-danger btn-sm" onclick="borrarConfigIA()">🗑 Borrar key</button>
+          </div>
+        </div>
+
+        <!-- 3-step guide -->
+        <div class="wf-steps" aria-label="Flujo de trabajo">
+          <div class="wf-step"><span class="wf-num">1</span>Sube imagen o pega URL Figma</div>
+          <div class="wf-arrow">›</div>
+          <div class="wf-step"><span class="wf-num">2</span>Lleva el prompt a claude.ai / ChatGPT / Gemini</div>
+          <div class="wf-arrow">›</div>
+          <div class="wf-step"><span class="wf-num">3</span>Pega el JSON aquí</div>
+        </div>
+
+        <!-- Tabs: Imagen | Figma | Importar JSON -->
+        <div class="import-tabs" role="tablist">
+          <button class="import-tab active" id="tab-btn-imagen" role="tab" aria-selected="true"  onclick="switchTab('imagen')">🖼 Imagen</button>
+          <button class="import-tab"        id="tab-btn-figma"  role="tab" aria-selected="false" onclick="switchTab('figma')">🎨 Figma</button>
+          <button class="import-tab"        id="tab-btn-json"   role="tab" aria-selected="false" onclick="switchTab('json')">📥 JSON</button>
+        </div>
+
+        <!-- ── TAB: IMAGEN ── -->
+        <div id="tab-imagen" role="tabpanel">
+          <div class="dropzone" id="dropzone" tabindex="0" role="button"
+               aria-label="Área de carga de imagen"
+               onclick="document.getElementById('file-input').click()"
+               onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('file-input').click()"
+               ondragover="dzDragOver(event)" ondragleave="dzDragLeave()" ondrop="dzDrop(event)">
+            <div class="dz-icon">📤</div>
+            <div class="dz-text">Arrastra una imagen o haz clic</div>
+            <div class="dz-hint">PNG · JPG · WEBP · GIF</div>
+          </div>
+          <input type="file" id="file-input" accept="image/*" style="display:none" onchange="fileSelected(event)">
+
+          <div class="img-preview" id="img-preview" style="display:none">
+            <img id="preview-img" alt="Vista previa">
+            <button class="btn btn-danger btn-sm img-preview-remove" onclick="clearImage()" aria-label="Quitar imagen">✕</button>
+          </div>
+
+          <div class="form-group" style="margin-bottom:.75rem">
+            <label class="form-label" for="img-contexto">Contexto adicional (opcional)</label>
+            <textarea id="img-contexto" class="form-control" rows="2" placeholder="Tipo de pantalla, flujo o funcionalidad específica…"></textarea>
+          </div>
+
+          <!-- Prompt listo para cualquier IA (aparece tras cargar imagen) -->
+          <div id="img-prompt-section" style="display:none">
+            <div class="prompt-box">
+              <div class="prompt-box-header">
+                <span class="prompt-box-label">📋 Prompt listo para copiar</span>
+                <button class="btn-copy" id="img-copy-btn" onclick="copiarPrompt('img-prompt-text','img-copy-btn')">Copiar</button>
+              </div>
+              <textarea id="img-prompt-text" class="prompt-textarea" readonly spellcheck="false"></textarea>
+            </div>
+            <div class="import-instruction">
+              <strong>¿Cómo continuar?</strong>
+              <ol>
+                <li>Abre <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--primary)">claude.ai</a>, ChatGPT o Gemini en otra pestaña</li>
+                <li>Adjunta la misma imagen que subiste aquí</li>
+                <li>Pega el prompt copiado y envía el mensaje</li>
+                <li>Cuando la IA responda con el JSON, ve a la tab <strong>📥 JSON</strong> y pégalo</li>
+              </ol>
+            </div>
+            <button class="btn btn-secondary btn-full btn-sm" style="margin-bottom:.5rem" onclick="switchTab('json')">
+              → Ir a tab JSON para pegar la respuesta
+            </button>
+          </div>
+
+          <button class="btn btn-purple btn-full" onclick="prepararImagen()" id="btn-gen-imagen" disabled>
+            📋 Preparar prompt para IA
+          </button>
+          <button class="btn btn-primary btn-full btn-gen-direct" id="btn-gen-direct" onclick="generarConIA()" style="display:none" disabled>
+            🤖 Generar historias con IA
+          </button>
+        </div>
+
+        <!-- ── TAB: FIGMA ── -->
+        <div id="tab-figma" role="tabpanel" style="display:none">
+          <div class="form-group">
+            <label class="form-label" for="figma-url">URL del archivo Figma</label>
+            <input type="url" id="figma-url" class="form-control" placeholder="https://www.figma.com/design/ABC123/…" oninput="updateFigmaPrompt()">
+          </div>
+
+          <div class="figma-preview" id="figma-preview">
+            <strong id="figma-file-name">Archivo Figma detectado ✓</strong><br>
+            <span id="figma-file-key" style="font-family:monospace;font-size:.7rem;color:var(--gray-400)"></span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:.75rem">
+            <label class="form-label" for="figma-contexto">Contexto adicional (opcional)</label>
+            <textarea id="figma-contexto" class="form-control" rows="2" placeholder="Módulo o flujo específico del diseño…" oninput="updateFigmaPrompt()"></textarea>
+          </div>
+
+          <div id="figma-prompt-box" style="display:none">
+            <div class="prompt-box">
+              <div class="prompt-box-header">
+                <span class="prompt-box-label">📋 Prompt listo para copiar</span>
+                <button class="btn-copy" id="figma-copy-btn" onclick="copiarPrompt('figma-prompt-text','figma-copy-btn')">Copiar</button>
+              </div>
+              <textarea id="figma-prompt-text" class="prompt-textarea" readonly spellcheck="false"></textarea>
+            </div>
+            <div class="import-instruction">
+              <strong>¿Cómo continuar?</strong>
+              <ol>
+                <li>Abre <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--primary)">claude.ai</a> en otra pestaña (soporta Figma con MCP)</li>
+                <li>Pega el prompt copiado — Claude leerá el diseño automáticamente</li>
+                <li>Cuando responda con el JSON, ve a la tab <strong>📥 JSON</strong></li>
+              </ol>
+              <div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(79,70,229,.08);border-radius:4px;font-size:.72rem">
+                💡 <strong>Alternativa:</strong> toma capturas de pantalla del diseño Figma y usa la tab <strong>🖼 Imagen</strong> con cualquier IA que soporte imágenes.
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-full btn-sm" onclick="switchTab('json')">
+              → Ir a tab JSON para pegar la respuesta
+            </button>
+          </div>
+        </div>
+
+        <!-- ── TAB: IMPORTAR JSON ── -->
+        <div id="tab-json" role="tabpanel" style="display:none">
+          <div class="form-group">
+            <label class="form-label" for="json-paste">Pega el JSON generado por Claude</label>
+            <textarea id="json-paste" class="json-paste-area" placeholder='[{"titulo":"...","como":"...","quiero":"...","para":"...","descripcion":"...","prioridad":"Alta","tipo":"Funcional"}]'></textarea>
+          </div>
+
+          <div class="or-divider"><hr><span>o carga un archivo</span><hr></div>
+
+          <div class="form-group">
+            <label class="form-label" for="json-file-input">Archivo .json</label>
+            <input type="file" id="json-file-input" class="form-control" accept=".json" onchange="importarJSONFile(event)">
+          </div>
+
+          <div class="form-group" style="margin-bottom:.75rem">
+            <label class="form-label" for="json-origen">Origen</label>
+            <select id="json-origen" class="form-control">
+              <option value="ia">🖼 Análisis de imagen</option>
+              <option value="figma">🎨 Diseño Figma</option>
+              <option value="manual">✏️ Otro</option>
+            </select>
+          </div>
+
+          <button class="btn btn-purple btn-full" onclick="importarJSON()">📥 Importar historias</button>
+
+          <div style="margin-top:.75rem">
+            <button class="btn btn-secondary btn-full btn-sm" onclick="toggleFormatoEjemplo()">📄 Ver formato JSON esperado</button>
+            <pre id="formato-ejemplo" class="format-pre" style="display:none">[
+  {
+    "titulo": "Iniciar sesión con email",
+    "como": "usuario registrado",
+    "quiero": "autenticarme con email y contraseña",
+    "para": "acceder a mi cuenta de forma segura",
+    "descripcion": "login, email, password, autenticación",
+    "prioridad": "Alta",
+    "tipo": "Seguridad"
+  }
+]</pre>
+          </div>
+        </div>
+
+      </div><!-- /import-body -->
+    </div><!-- /card-importar -->
+
+  </aside>
+
+  <!-- CARDS -->
+  <section aria-label="Historias de usuario">
+    <div id="ia-banner" class="ia-banner">
+      <span>🤖</span><span id="ia-banner-text"></span>
+    </div>
+    <div class="search-filter">
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input type="search" id="hu-buscar" class="form-control" placeholder="Buscar historias…" oninput="filtrar()" aria-label="Buscar">
+      </div>
+      <select id="hu-filtro" class="form-control" style="width:auto" onchange="filtrar()" aria-label="Filtrar por prioridad">
+        <option value="">Todas</option>
+        <option>Alta</option><option>Media</option><option>Baja</option>
+      </select>
+      <button class="btn btn-sel-mode btn-sm" id="btn-sel-mode" onclick="toggleModoSeleccion()" title="Modo selección">☑ Seleccionar</button>
+    </div>
+    <div id="cards-container" role="list" aria-label="Lista de historias"></div>
+  </section>
+</main>
+
+<!-- MODAL DETALLE -->
+<div id="modal-back" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" onclick="cerrarFuera(event)">
+  <div class="modal" id="modal-contenido">
+    <div class="modal-header">
+      <div>
+        <h2 id="modal-titulo">Detalle</h2>
+        <div class="modal-meta" id="modal-meta"></div>
+      </div>
+      <button class="modal-close" onclick="cerrarModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="section-title">Historia de usuario</div>
+        <div class="story-box" id="modal-story"></div>
+      </div>
+      <div class="modal-section">
+        <div class="section-title">
+          <span>Criterios de aceptación (Gherkin)</span>
+          <button class="btn btn-secondary btn-sm" onclick="regenerar()">↺ Regenerar</button>
+        </div>
+        <div class="gherkin-scenarios" id="modal-criterios"></div>
+      </div>
+      <div class="modal-section half">
+        <div class="section-title">Definition of Ready (DoR)</div>
+        <div class="prog-row">
+          <div class="prog-track"><div class="prog-fill dor" id="dor-bar" style="width:0%"></div></div>
+          <div class="prog-pct" id="dor-pct">0%</div>
+        </div>
+        <div class="checklist" id="dor-list"></div>
+      </div>
+      <div class="modal-section half">
+        <div class="section-title">Definition of Done (DoD)</div>
+        <div class="prog-row">
+          <div class="prog-track"><div class="prog-fill dod" id="dod-bar" style="width:0%"></div></div>
+          <div class="prog-pct" id="dod-pct">0%</div>
+        </div>
+        <div class="checklist" id="dod-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div style="font-size:.78rem;color:var(--gray-500)" id="modal-foot-id"></div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="exportarHistoria()">⬇ Exportar</button>
+        <button class="btn btn-secondary btn-sm" id="modal-copy-btn" onclick="copiarHistoriaModal()">📋 Copiar</button>
+        <button class="btn btn-secondary btn-sm" onclick="editarDesdeModal()">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminarActual()">🗑 Eliminar</button>
+        <button class="btn btn-primary btn-sm" onclick="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SELECTION BAR -->
+<div class="sel-bar" id="sel-bar" role="toolbar" aria-label="Acciones de selección">
+  <span class="sel-count" id="sel-count">0 seleccionadas</span>
+  <div class="sel-divider"></div>
+  <button class="sel-btn" onclick="seleccionarTodas()">✓ Todas</button>
+  <button class="sel-btn" onclick="deseleccionarTodas()">○ Ninguna</button>
+  <div class="sel-divider"></div>
+  <button class="sel-btn" onclick="exportarPDF()">📄 PDF</button>
+  <button class="sel-btn" onclick="exportarCSV()">📊 Excel / CSV</button>
+  <div class="sel-divider"></div>
+  <button class="sel-close" onclick="toggleModoSeleccion()" title="Cerrar selección">✕</button>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="edit-modal-back" role="dialog" aria-modal="true" onclick="cerrarEditFuera(event)">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <div>
+        <h2 id="edit-modal-titulo">Editar historia</h2>
+        <div class="modal-meta" id="edit-modal-foot-id"></div>
+      </div>
+      <button class="modal-close" onclick="cerrarEditModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr">
+      <div class="modal-section" style="grid-column:1/-1">
+        <div class="form-group">
+          <label class="form-label" for="edit-titulo">Título *</label>
+          <input type="text" id="edit-titulo" class="form-control" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="form-group">
+            <label class="form-label" for="edit-como">Como...</label>
+            <input type="text" id="edit-como" class="form-control" placeholder="rol / persona">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-quiero">Quiero...</label>
+            <input type="text" id="edit-quiero" class="form-control" placeholder="acción">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-para">Para...</label>
+          <input type="text" id="edit-para" class="form-control" placeholder="beneficio / objetivo">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-descripcion">Descripción / keywords</label>
+          <textarea id="edit-descripcion" class="form-control" rows="2" style="resize:vertical"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="edit-prioridad">Prioridad</label>
+            <select id="edit-prioridad" class="form-control">
+              <option>Alta</option><option>Media</option><option>Baja</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="edit-tipo">Tipo</label>
+            <select id="edit-tipo" class="form-control">
+              <option>Funcional</option><option>No funcional</option><option>Integración</option><option>UI/UX</option><option>Seguridad</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="edit-epica">Épica</label>
+            <select id="edit-epica" class="form-control"></select>
+          </div>
+        </div>
+        <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-2)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+            <span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--primary-light)">Criterios de aceptación (Gherkin)</span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="agregarCriterioEdit()">＋ Agregar</button>
+          </div>
+          <div id="edit-criterios-list"></div>
+          <p style="font-size:.7rem;color:var(--gray-500);margin-top:.5rem">Palabras clave válidas: <code style="color:var(--primary-light)">Scenario Given When Then And</code></p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div></div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-secondary btn-sm" onclick="cerrarEditModal()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="guardarEdicion()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+// ── ESTADO ──────────────────────────────────────────────────────────────────
+const SK       = 'analista-hu-v1';
+const SK_EP    = 'analista-ep-v1';
+let historias  = [];
+let epicas     = [];
+let idActual   = null;
+let epicaFiltro = null;
+let imagenBase64 = null;
+let imagenType   = null;
+let modoSeleccion = false;
+let seleccionadas = new Set();
+
+const EPIC_COLORS = ['#4f46e5','#7c3aed','#059669','#d97706','#dc2626','#0891b2','#be185d','#4b5563'];
+let epicaColorActual = EPIC_COLORS[0];
+
+// ── UTILS ────────────────────────────────────────────────────────────────────
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function pct(items) {
+  if (!items || !items.length) return 0;
+  return Math.round(items.filter(i => i.checked).length / items.length * 100);
+}
+function generarId() { return 'HU-' + Date.now().toString(36).toUpperCase(); }
+
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+function guardar()       { try { localStorage.setItem(SK,    JSON.stringify(historias)); } catch(e) {} }
+function guardarEpicas() { try { localStorage.setItem(SK_EP, JSON.stringify(epicas));    } catch(e) {} }
+function cargar() {
+  try { const d = localStorage.getItem(SK);    if (d) historias = JSON.parse(d); } catch(e) { historias = []; }
+}
+function cargarEpicas() {
+  try { const d = localStorage.getItem(SK_EP); if (d) epicas = JSON.parse(d);    } catch(e) { epicas = []; }
+}
+
+// ── PALABRAS CLAVE ────────────────────────────────────────────────────────────
+const KW_MAP = {
+  autenticacion: ['login','autenti','password','contraseña','iniciar sesión','iniciar sesion','sign in'],
+  email:         ['email','correo','e-mail'],
+  pago:          ['pago','cobro','tarjeta','transacción','transaccion','factura','compra'],
+  api:           ['api ','servicio externo','webhook','endpoint','rest ','integra'],
+  responsive:    ['responsive','móvil','movil','tablet','celular','dispositivo'],
+  permisos:      ['permiso','rol ','autoriza','acceso restri','restrict'],
+  archivo:       ['archivo','fichero','upload','subir','adjunto','documento','pdf','excel','csv'],
+  reporte:       ['reporte','informe','report','exportar pdf','generar pdf'],
+  busqueda:      ['búsqueda','busqueda','buscar','filtro','filtrar','search'],
+  notificacion:  ['notificación','notificacion','alerta','aviso','push']
+};
+function detectar(texto) {
+  const t = texto.toLowerCase();
+  return Object.entries(KW_MAP).filter(([,ws]) => ws.some(w => t.includes(w))).map(([k]) => k);
+}
+
+// ── GHERKIN ───────────────────────────────────────────────────────────────────
+function mkScenario(id, tipo, titulo, pasos) { return {id, tipo, titulo, pasos}; }
+function p(kw, texto) { return {kw, texto}; }
+
+function generarCriterios(h) {
+  const texto = [h.titulo, h.como, h.quiero, h.para, h.descripcion].join(' ');
+  const kws = detectar(texto);
+  const c = [];
+
+  c.push(mkScenario('E1','positivo','Camino feliz — caso positivo',[
+    p('Scenario',`Completar "${esc(h.titulo)}" con datos válidos`),
+    p('Given',`que el usuario "${esc(h.como)}" está autenticado en el sistema`),
+    p('And',`que dispone de los permisos necesarios para la acción`),
+    p('When',`${esc(h.quiero)}`),
+    p('And',`todos los datos proporcionados son válidos y completos`),
+    p('Then',`el sistema completa la acción exitosamente`),
+    p('And',`se muestra mensaje de confirmación al usuario`),
+    p('And',`el estado del sistema se actualiza correctamente`)
+  ]));
+
+  c.push(mkScenario('E2','negativo','Datos inválidos — caso negativo',[
+    p('Scenario',`Intentar "${esc(h.titulo)}" con datos inválidos`),
+    p('Given',`que el usuario "${esc(h.como)}" accede a la funcionalidad`),
+    p('When',`envía el formulario con datos inválidos o incompletos`),
+    p('Then',`el sistema rechaza la acción`),
+    p('And',`muestra mensajes de error descriptivos en los campos correspondientes`),
+    p('And',`no modifica ningún dato persistente`),
+    p('And',`el usuario puede corregir y reintentar`)
+  ]));
+
+  c.push(mkScenario('E3','boundary','Condiciones límite — boundary',[
+    p('Scenario',`Validar condiciones límite en "${esc(h.titulo)}"`),
+    p('Given',`que el usuario accede al formulario de la funcionalidad`),
+    p('When',`ingresa valores en los límites mínimo y máximo permitidos`),
+    p('Then',`el sistema acepta el valor en el límite mínimo válido`),
+    p('And',`el sistema acepta el valor en el límite máximo válido`),
+    p('And',`el sistema rechaza campos vacíos con mensaje de campo obligatorio`),
+    p('And',`el sistema rechaza cadenas que superen 255 caracteres`),
+    p('And',`el sistema rechaza caracteres especiales no permitidos`)
+  ]));
+
+  c.push(mkScenario('E-NF','nf','Calidad no funcional — ISTQB',[
+    p('Scenario',`Verificar requisitos no funcionales de "${esc(h.titulo)}"`),
+    p('Given',`que la funcionalidad está desplegada en el entorno de QA`),
+    p('When',`el usuario realiza la acción principal bajo carga normal`),
+    p('Then',`el tiempo de respuesta es menor o igual a 3 segundos (p95)`),
+    p('And',`la comunicación se realiza exclusivamente por HTTPS/TLS 1.2+`),
+    p('And',`la interfaz cumple con WCAG 2.1 nivel AA de accesibilidad`),
+    p('And',`no se exponen datos sensibles en logs ni en la interfaz`)
+  ]));
+
+  if (kws.includes('autenticacion')) c.push(mkScenario('E-AUTH','condicional','Bloqueo por intentos fallidos',[
+    p('Scenario',`Bloquear cuenta tras múltiples intentos fallidos`),
+    p('Given',`que el usuario intenta autenticarse con credenciales incorrectas`),
+    p('When',`realiza 3 intentos fallidos consecutivos`),
+    p('Then',`el sistema bloquea la cuenta temporalmente por 15 minutos`),
+    p('And',`notifica al usuario por email sobre el bloqueo`),
+    p('And',`el evento queda registrado en el log de auditoría de seguridad`)
+  ]));
+  if (kws.includes('email')) c.push(mkScenario('E-EMAIL','condicional','Validación de formato de email',[
+    p('Scenario',`Validar formato de dirección de correo electrónico`),
+    p('Given',`que el usuario ingresa una dirección de email`),
+    p('When',`el email no cumple el formato RFC 5321`),
+    p('Then',`el sistema muestra el error "Dirección de email no válida"`),
+    p('And',`el campo es marcado visualmente como inválido`),
+    p('When',`el email cumple el formato correcto (usuario@dominio.tld)`),
+    p('Then',`el campo se marca como válido y no bloquea el envío`)
+  ]));
+  if (kws.includes('pago')) c.push(mkScenario('E-PAGO','condicional','Transacción rechazada',[
+    p('Scenario',`Manejar rechazo de transacción de pago`),
+    p('Given',`que el usuario inicia un proceso de pago`),
+    p('When',`la pasarela devuelve error de fondos insuficientes o tarjeta rechazada`),
+    p('Then',`el sistema muestra un mensaje de error claro`),
+    p('And',`no se debita ningún importe de la cuenta del usuario`),
+    p('And',`el pedido permanece en estado "pendiente de pago"`),
+    p('And',`el usuario puede reintentar con otro método de pago`)
+  ]));
+  if (kws.includes('api')) c.push(mkScenario('E-API','condicional','Fallo de servicio externo',[
+    p('Scenario',`Gestionar fallo o timeout de servicio externo`),
+    p('Given',`que el sistema depende de un servicio externo (API)`),
+    p('When',`el servicio devuelve un error 5xx o supera el timeout de 5s`),
+    p('Then',`el sistema muestra un mensaje de error amigable al usuario`),
+    p('And',`activa circuit-breaker o reintentos automáticos (máx. 3)`),
+    p('And',`registra el error con correlationId en los logs`)
+  ]));
+  if (kws.includes('responsive')) c.push(mkScenario('E-RES','condicional','Compatibilidad responsive',[
+    p('Scenario',`Verificar visualización correcta en dispositivos móviles`),
+    p('Given',`que el usuario accede desde un dispositivo con viewport ≤ 768px`),
+    p('When',`carga la página de la funcionalidad`),
+    p('Then',`el layout se adapta sin scroll horizontal`),
+    p('And',`los elementos táctiles tienen área mínima de 44×44px`),
+    p('And',`el texto es legible sin zoom (mínimo 16px)`)
+  ]));
+  if (kws.includes('permisos')) c.push(mkScenario('E-PERM','condicional','Acceso denegado por permisos insuficientes',[
+    p('Scenario',`Denegar acceso a usuario sin permisos necesarios`),
+    p('Given',`que el usuario intenta acceder a una función restringida`),
+    p('When',`no tiene el rol o permiso requerido en el sistema`),
+    p('Then',`el sistema devuelve HTTP 403 Forbidden`),
+    p('And',`muestra "No tienes permisos para realizar esta acción"`),
+    p('And',`no se expone información sensible en el mensaje de error`)
+  ]));
+  if (kws.includes('archivo')) c.push(mkScenario('E-ARCH','condicional','Validación de carga de archivo',[
+    p('Scenario',`Validar tipo y tamaño de archivo`),
+    p('Given',`que el usuario selecciona un archivo para subir`),
+    p('When',`el archivo excede el tamaño máximo permitido (10 MB)`),
+    p('Then',`el sistema rechaza con "Archivo demasiado grande (máx. 10 MB)"`),
+    p('When',`el archivo tiene formato no permitido (.exe, .bat…)`),
+    p('Then',`el sistema rechaza con "Formato de archivo no permitido"`)
+  ]));
+  if (kws.includes('reporte')) c.push(mkScenario('E-REP','condicional','Generación de reporte con volumen alto',[
+    p('Scenario',`Generar reporte con conjunto de datos grande`),
+    p('Given',`que el sistema tiene más de 10.000 registros en el período`),
+    p('When',`el usuario solicita generar el reporte completo`),
+    p('Then',`el sistema genera el reporte de forma asíncrona`),
+    p('And',`muestra indicador de progreso al usuario`),
+    p('And',`notifica cuando el reporte está listo para descargar`)
+  ]));
+  if (kws.includes('busqueda')) c.push(mkScenario('E-SRCH','condicional','Búsqueda sin resultados y caracteres especiales',[
+    p('Scenario',`Manejar búsqueda sin resultados`),
+    p('Given',`que el usuario realiza una búsqueda en el sistema`),
+    p('When',`el término no coincide con ningún registro`),
+    p('Then',`muestra "No se encontraron resultados para tu búsqueda"`),
+    p('When',`el término contiene caracteres especiales o SQL injection`),
+    p('Then',`el sistema sanitiza la entrada y no retorna datos no autorizados`)
+  ]));
+  if (kws.includes('notificacion')) c.push(mkScenario('E-NOTIF','condicional','Fallo en envío de notificación',[
+    p('Scenario',`Gestionar fallo en el envío de notificación`),
+    p('Given',`que el sistema debe enviar una notificación al usuario`),
+    p('When',`el servicio de notificaciones falla o está no disponible`),
+    p('Then',`el sistema registra el fallo en la cola de reintento`),
+    p('And',`reintenta hasta 3 veces con backoff exponencial`)
+  ]));
+
+  return c;
+}
+
+// ── DoR / DoD ────────────────────────────────────────────────────────────────
+function mkDoR() {
+  return [
+    {id:'dor-1', texto:'Formato "Como <rol> / Quiero <acción> / Para <objetivo>" presente y completo', checked:false},
+    {id:'dor-2', texto:'Descripción sin ambigüedades ni términos técnicos no explicados', checked:false},
+    {id:'dor-3', texto:'Criterios de aceptación definidos y verificables (mínimo 4 escenarios)', checked:false},
+    {id:'dor-4', texto:'Dependencias con otras historias o servicios identificadas', checked:false},
+    {id:'dor-5', texto:'Reglas de negocio documentadas y validadas por el negocio', checked:false},
+    {id:'dor-6', texto:'Mockups/wireframes o contratos de API disponibles', checked:false},
+    {id:'dor-7', texto:'Historia estimada en story points por el equipo', checked:false},
+    {id:'dor-8', texto:'Historia revisada y aceptada por el Product Owner', checked:false},
+    {id:'dor-9', texto:'Datos de prueba y entorno de testing identificados', checked:false},
+    {id:'dor-10',texto:'Historia cumple el principio INVEST (Small, Independiente, Negociable, Valiosa, Estimable)', checked:false},
+    {id:'dor-11',texto:'Stakeholders y usuarios afectados identificados', checked:false},
+    {id:'dor-12',texto:'Requisitos no funcionales (rendimiento, seguridad, accesibilidad) considerados', checked:false}
+  ];
+}
+function mkDoD() {
+  return [
+    {id:'dod-1', texto:'Código cumple estándares del equipo (lint sin errores, code style)', checked:false},
+    {id:'dod-2', texto:'Cobertura de pruebas unitarias ≥ 80% en el módulo afectado', checked:false},
+    {id:'dod-3', texto:'Pruebas de integración ejecutadas y pasando en CI/CD', checked:false},
+    {id:'dod-4', texto:'Pruebas funcionales ejecutadas cubriendo todos los criterios de aceptación', checked:false},
+    {id:'dod-5', texto:'Code review aprobado por al menos un par del equipo', checked:false},
+    {id:'dod-6', texto:'Sin defectos críticos ni bloqueantes abiertos', checked:false},
+    {id:'dod-7', texto:'Documentación técnica y de usuario actualizada', checked:false},
+    {id:'dod-8', texto:'Merge a rama principal (main/develop) completado sin conflictos', checked:false},
+    {id:'dod-9', texto:'Deploy exitoso en entorno de QA verificado', checked:false},
+    {id:'dod-10',texto:'Validación UX/UI aprobada por diseño o Product Owner', checked:false},
+    {id:'dod-11',texto:'Suite de regresión ejecutada sin nuevos defectos introducidos', checked:false},
+    {id:'dod-12',texto:'Aceptación formal del Product Owner registrada', checked:false},
+    {id:'dod-13',texto:'Métricas, alertas y logs en producción configurados y verificados', checked:false},
+    {id:'dod-14',texto:'Requisitos no funcionales (rendimiento, seguridad, accesibilidad) validados en QA', checked:false},
+    {id:'dod-15',texto:'Trazabilidad ISTQB completa: criterio de aceptación → caso de prueba → historia de usuario', checked:false}
+  ];
+}
+
+// ── CRUD MANUAL ──────────────────────────────────────────────────────────────
+function crearHistoria(e) {
+  e.preventDefault();
+  const titulo = document.getElementById('hu-titulo').value.trim();
+  const como   = document.getElementById('hu-como').value.trim();
+  const quiero = document.getElementById('hu-quiero').value.trim();
+  const para   = document.getElementById('hu-para').value.trim();
+  const desc   = document.getElementById('hu-desc').value.trim();
+  const prior  = document.getElementById('hu-prior').value;
+  const tipo   = document.getElementById('hu-tipo').value;
+  if (!titulo || !como || !quiero || !para) {
+    toast('⚠️ Completa los campos obligatorios: Título, Como, Quiero, Para', 'warn'); return;
+  }
+  const epicaId = document.getElementById('hu-epica').value;
+  const h = { id:generarId(), titulo, como, quiero, para, descripcion:desc,
+               prioridad:prior, tipo, epicaId, criterios:[], dor:mkDoR(), dod:mkDoD(),
+               creadoEn:new Date().toISOString(), origen:'manual' };
+  h.criterios = generarCriterios(h);
+  historias.unshift(h);
+  guardar(); renderCards(); dashboard();
+  document.getElementById('form-hu').reset();
+  toast(`✅ Historia "${titulo}" creada con ${h.criterios.length} escenarios Gherkin`);
+}
+
+function eliminarHistoria(id, ev) {
+  if (ev) ev.stopPropagation();
+  if (!confirm('¿Eliminar esta historia? Esta acción no se puede deshacer.')) return;
+  historias = historias.filter(h => h.id !== id);
+  guardar(); renderCards(); dashboard();
+  toast('🗑 Historia eliminada');
+}
+function eliminarActual() {
+  if (!idActual) return;
+  if (!confirm('¿Eliminar esta historia? Esta acción no se puede deshacer.')) return;
+  historias = historias.filter(h => h.id !== idActual);
+  guardar(); cerrarModal(); renderCards(); dashboard();
+  toast('🗑 Historia eliminada');
+}
+
+// ── RENDER CARDS ─────────────────────────────────────────────────────────────
+function renderCards(lista) {
+  const el = document.getElementById('cards-container');
+  if (modoSeleccion) el.classList.add('selection-mode');
+  else el.classList.remove('selection-mode');
+
+  const src = lista !== undefined ? lista : historias;
+  const filtered = epicaFiltro ? src.filter(h => h.epicaId === epicaFiltro) : src;
+
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty-state" role="status">
+      <span class="ei">📋</span>
+      <h3>${historias.length===0 ? 'Aún no hay historias' : 'Sin resultados para el filtro'}</h3>
+      <p>${historias.length===0 ? 'Crea tu primera historia, carga ejemplos o importa desde imagen/Figma.' : 'Prueba con otros criterios de búsqueda.'}</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(h => {
+    const pd = pct(h.dor), pp = pct(h.dod);
+    const bc = `badge-${h.prioridad.toLowerCase()}`;
+    const iaClass = h.origen === 'ia' ? ' ia-card' : '';
+    const selClass = seleccionadas.has(h.id) ? ' selected' : '';
+    const epica = h.epicaId ? epicas.find(e => e.id === h.epicaId) : null;
+    const epicaBadge = epica
+      ? `<span class="badge badge-epic" style="background:${esc(epica.color)}">🗂 ${esc(epica.nombre)}</span>` : '';
+    return `<article class="hu-card${iaClass}${selClass}" role="listitem" tabindex="0"
+      onclick="huCardClick('${esc(h.id)}',event)"
+      onkeydown="if(event.key==='Enter'||event.key===' ')huCardClick('${esc(h.id)}',event)"
+      aria-label="Historia ${esc(h.id)}: ${esc(h.titulo)}">
+      <input type="checkbox" class="hu-card-check" ${seleccionadas.has(h.id)?'checked':''}
+        onclick="event.stopPropagation();toggleSeleccion('${esc(h.id)}')" aria-label="Seleccionar">
+      <div class="hu-card-inner">
+        <div class="hu-card-header">
+          <span class="hu-id">${esc(h.id)}</span>
+          <div class="card-actions" onclick="event.stopPropagation()">
+            <button class="btn-card-action btn-card-edit" onclick="editarHistoria('${esc(h.id)}')" title="Editar">✏️</button>
+            <button class="btn-card-action btn-card-copy" data-copy-id="${esc(h.id)}" onclick="copiarHistoria('${esc(h.id)}')" title="Copiar al portapapeles">📋</button>
+            <button class="btn-card-action btn-card-del" onclick="eliminarHistoria('${esc(h.id)}')" title="Eliminar">🗑</button>
+          </div>
+        </div>
+        <div class="hu-card-title">${esc(h.titulo)}</div>
+        <div class="hu-card-story">Como <strong>${esc(h.como)}</strong>, quiero ${esc(h.quiero)}</div>
+        <div class="hu-card-badges">
+          ${epicaBadge}
+          <span class="badge ${bc}">${esc(h.prioridad)}</span>
+          <span class="badge badge-tipo">${esc(h.tipo)}</span>
+          <span class="badge badge-crit">📝 ${h.criterios.length} escenarios</span>
+          ${h.origen==='ia' ? '<span class="badge badge-ia">🤖 IA</span>' : ''}
+          ${h.origen==='figma' ? '<span class="badge badge-ia">🎨 Figma</span>' : ''}
+        </div>
+        <div class="progress-labels"><span>DoR</span><span>${pd}%</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar pb-dor" style="width:${pd}%" role="progressbar" aria-valuenow="${pd}" aria-valuemin="0" aria-valuemax="100"></div></div>
+        <div style="height:.28rem"></div>
+        <div class="progress-labels"><span>DoD</span><span>${pp}%</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar pb-dod" style="width:${pp}%" role="progressbar" aria-valuenow="${pp}" aria-valuemin="0" aria-valuemax="100"></div></div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+// ── FILTRO / BÚSQUEDA ─────────────────────────────────────────────────────────
+function filtrar() {
+  const q  = document.getElementById('hu-buscar').value.toLowerCase();
+  const pr = document.getElementById('hu-filtro').value;
+  const res = historias.filter(h => {
+    const t = [h.id,h.titulo,h.como,h.quiero,h.para,h.descripcion].join(' ').toLowerCase();
+    return (!q || t.includes(q)) && (!pr || h.prioridad === pr);
+  });
+  renderCards(res);
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function dashboard() {
+  document.getElementById('m-total').textContent = historias.length;
+  document.getElementById('m-listas').textContent = historias.filter(h => pct(h.dor)===100).length;
+  document.getElementById('m-term').textContent   = historias.filter(h => pct(h.dod)===100).length;
+  document.getElementById('m-crit').textContent   = historias.reduce((a,h) => a + (h.criterios||[]).length, 0);
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+const TIPOS = {
+  positivo:{l:'POSITIVO',c:'gb-pos'},negativo:{l:'NEGATIVO',c:'gb-neg'},
+  boundary:{l:'BOUNDARY',c:'gb-bnd'},nf:{l:'NO FUNCIONAL',c:'gb-nf'},condicional:{l:'CONDICIONAL',c:'gb-cnd'}
+};
+const KW_HTML = { Scenario:'kw-esc',Given:'kw-dado',When:'kw-cuando',Then:'kw-entonces',And:'kw-y' };
+
+function abrirModal(id) {
+  const h = historias.find(x => x.id === id);
+  if (!h) return;
+  idActual = id;
+  document.getElementById('modal-titulo').textContent = h.titulo;
+  document.getElementById('modal-foot-id').textContent = `${h.id} · ${h.tipo} · ${h.prioridad}`;
+  document.getElementById('modal-meta').innerHTML =
+    `<span>🏷 ${esc(h.id)}</span><span>📊 ${esc(h.prioridad)}</span><span>🧪 ${esc(h.tipo)}</span><span>📅 ${new Date(h.creadoEn).toLocaleDateString('es-ES')}</span>` +
+    (h.origen==='ia' ? '<span>🤖 Generada por IA</span>' : '') +
+    (h.origen==='figma' ? '<span>🎨 Importada de Figma</span>' : '');
+  document.getElementById('modal-story').innerHTML =
+    `<p><strong>Como</strong> ${esc(h.como)},<br><strong>quiero</strong> ${esc(h.quiero)},<br><strong>para</strong> ${esc(h.para)}.</p>` +
+    (h.descripcion ? `<p style="margin-top:.5rem;color:var(--gray-600)">${esc(h.descripcion)}</p>` : '');
+  renderCriterios(h.criterios);
+  renderChecklist('dor-list','dor-bar','dor-pct', h.dor, id, 'dor');
+  renderChecklist('dod-list','dod-bar','dod-pct', h.dod, id, 'dod');
+  const mb = document.getElementById('modal-back');
+  mb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => { const btn = mb.querySelector('.modal-close'); if(btn) btn.focus(); }, 80);
+}
+
+function renderCriterios(criterios) {
+  const el = document.getElementById('modal-criterios');
+  if (!criterios || !criterios.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.85rem">Sin criterios.</p>'; return; }
+  el.innerHTML = criterios.map(c => {
+    const t = TIPOS[c.tipo] || {l:c.tipo,c:''};
+    const lineas = c.pasos.map(paso => {
+      const cls = KW_HTML[paso.kw] || '';
+      const pad = paso.kw === 'And' ? '  And' : paso.kw;
+      return `  <span class="${cls}">${esc(pad)}</span> ${esc(paso.texto)}`;
+    }).join('\n');
+    return `<div class="gherkin-scenario">
+      <div class="gherkin-hdr"><span class="g-badge ${t.c}">${t.l}</span><span>${esc(c.id)} · ${esc(c.titulo)}</span></div>
+      <pre class="gherkin-code">${lineas}</pre>
+    </div>`;
+  }).join('');
+}
+
+function renderChecklist(listId, barId, pctId, items, hid, tipo) {
+  document.getElementById(listId).innerHTML = items.map((it, idx) =>
+    `<div class="cl-item${it.checked?' checked':''}" id="w-${esc(it.id)}">
+      <input type="checkbox" id="${esc(it.id)}" ${it.checked?'checked':''} onchange="toggle('${esc(hid)}','${tipo}',${idx})" aria-label="${esc(it.texto)}">
+      <label for="${esc(it.id)}">${esc(it.texto)}</label>
+    </div>`
+  ).join('');
+  barPct(barId, pctId, items);
+}
+
+function toggle(hid, tipo, idx) {
+  const h = historias.find(x => x.id === hid);
+  if (!h) return;
+  h[tipo][idx].checked = !h[tipo][idx].checked;
+  guardar(); dashboard(); renderCards();
+  barPct(`${tipo}-bar`,`${tipo}-pct`, h[tipo]);
+  const wrap = document.getElementById(`w-${h[tipo][idx].id}`);
+  if (wrap) { if (h[tipo][idx].checked) wrap.classList.add('checked'); else wrap.classList.remove('checked'); }
+}
+
+function barPct(barId, pctId, items) {
+  const v = pct(items);
+  const bar = document.getElementById(barId);
+  const pt  = document.getElementById(pctId);
+  if (bar) bar.style.width = v + '%';
+  if (pt)  pt.textContent  = v + '%';
+}
+
+function regenerar() {
+  const h = historias.find(x => x.id === idActual);
+  if (!h) return;
+  h.criterios = generarCriterios(h);
+  guardar(); dashboard(); renderCards();
+  renderCriterios(h.criterios);
+  toast(`↺ Criterios regenerados: ${h.criterios.length} escenarios`);
+}
+
+function cerrarModal() {
+  document.getElementById('modal-back').classList.remove('open');
+  document.body.style.overflow = '';
+  idActual = null;
+}
+function cerrarFuera(e) { if (e.target === document.getElementById('modal-back')) cerrarModal(); }
+
+// ── EDITAR HISTORIA ──────────────────────────────────────────────────────────
+const EDIT_CRIT_TIPOS = ['positivo','negativo','boundary','nf','condicional'];
+const EDIT_CRIT_LABELS = {positivo:'Positivo',negativo:'Negativo',boundary:'Boundary',nf:'No funcional',condicional:'Condicional'};
+
+function editarHistoria(id) {
+  const h = historias.find(x => x.id === id);
+  if (!h) return;
+  idActual = id;
+  document.getElementById('edit-titulo').value = h.titulo;
+  document.getElementById('edit-como').value = h.como;
+  document.getElementById('edit-quiero').value = h.quiero;
+  document.getElementById('edit-para').value = h.para;
+  document.getElementById('edit-descripcion').value = h.descripcion || '';
+  document.getElementById('edit-prioridad').value = h.prioridad;
+  document.getElementById('edit-tipo').value = h.tipo;
+  const sel = document.getElementById('edit-epica');
+  sel.innerHTML = '<option value="">Sin épica</option>' +
+    epicas.map(e => `<option value="${esc(e.id)}">${esc(e.nombre)}</option>`).join('');
+  sel.value = h.epicaId || '';
+  document.getElementById('edit-modal-titulo').textContent = `Editar ${h.id}`;
+  document.getElementById('edit-modal-foot-id').textContent =
+    `${h.id} · Creada ${new Date(h.creadoEn).toLocaleDateString('es-ES')}`;
+  renderEditCriterios(h.criterios || []);
+  document.getElementById('edit-modal-back').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('edit-titulo').focus(), 80);
+}
+
+function editarDesdeModal() {
+  cerrarModal();
+  editarHistoria(idActual);
+}
+
+function copiarHistoriaModal() {
+  const btn = document.getElementById('modal-copy-btn');
+  copiarHistoria(idActual);
+  if (btn) { btn.textContent = '✓ Copiado'; setTimeout(() => { btn.textContent = '📋 Copiar'; }, 2000); }
+}
+
+function renderEditCriterios(criterios) {
+  document.getElementById('edit-criterios-list').innerHTML = (criterios || []).map((c, ci) => {
+    const pasosTxt = esc((c.pasos || []).map(p =>
+      `${p.kw === 'And' ? '  And' : p.kw} ${p.texto}`
+    ).join('\n'));
+    return `<div class="edit-crit-item">
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">
+        <select class="form-control edit-crit-tipo" style="width:auto;flex-shrink:0;font-size:.78rem">
+          ${EDIT_CRIT_TIPOS.map(t => `<option value="${t}"${c.tipo===t?' selected':''}>${EDIT_CRIT_LABELS[t]}</option>`).join('')}
+        </select>
+        <input type="text" class="form-control edit-crit-titulo" value="${esc(c.titulo)}" placeholder="Título del escenario" style="flex:1;min-width:0;font-size:.82rem">
+        <button type="button" class="btn-card-action btn-card-del" onclick="this.closest('.edit-crit-item').remove()" title="Eliminar criterio">✕</button>
+      </div>
+      <textarea class="form-control edit-crit-pasos" rows="5" style="font-family:'Courier New',monospace;font-size:.79rem;resize:vertical">${pasosTxt}</textarea>
+    </div>`;
+  }).join('');
+}
+
+function agregarCriterioEdit() {
+  const item = document.createElement('div');
+  item.className = 'edit-crit-item';
+  item.innerHTML = `
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">
+      <select class="form-control edit-crit-tipo" style="width:auto;flex-shrink:0;font-size:.78rem">
+        ${EDIT_CRIT_TIPOS.map(t => `<option value="${t}">${EDIT_CRIT_LABELS[t]}</option>`).join('')}
+      </select>
+      <input type="text" class="form-control edit-crit-titulo" value="" placeholder="Título del escenario" style="flex:1;min-width:0;font-size:.82rem">
+      <button type="button" class="btn-card-action btn-card-del" onclick="this.closest('.edit-crit-item').remove()" title="Eliminar criterio">✕</button>
+    </div>
+    <textarea class="form-control edit-crit-pasos" rows="5" style="font-family:'Courier New',monospace;font-size:.79rem;resize:vertical">Scenario \nGiven \nWhen \nThen </textarea>`;
+  document.getElementById('edit-criterios-list').appendChild(item);
+  item.querySelector('.edit-crit-titulo').focus();
+}
+
+function leerCriteriosEdit(huId) {
+  const KWS = ['Scenario','Given','When','Then','And'];
+  return [...document.querySelectorAll('#edit-criterios-list .edit-crit-item')].map((item, ci) => {
+    const tipo   = item.querySelector('.edit-crit-tipo').value;
+    const titulo = item.querySelector('.edit-crit-titulo').value.trim() || `Escenario ${ci + 1}`;
+    const raw    = item.querySelector('.edit-crit-pasos').value;
+    const pasos  = raw.trim().split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+      const kw = KWS.find(k => line.toLowerCase() === k.toLowerCase() ||
+        line.toLowerCase().startsWith(k.toLowerCase() + ' '));
+      return kw ? {kw, texto: line.slice(kw.length).trim()} : null;
+    }).filter(Boolean);
+    return { id: `${huId}-TC-${String(ci + 1).padStart(3,'0')}`, tipo, titulo, pasos };
+  });
+}
+
+function guardarEdicion() {
+  const h = historias.find(x => x.id === idActual);
+  if (!h) return;
+  const titulo = document.getElementById('edit-titulo').value.trim();
+  if (!titulo) { toast('⚠️ El título es obligatorio', 'warn'); return; }
+  h.titulo      = titulo;
+  h.como        = document.getElementById('edit-como').value.trim();
+  h.quiero      = document.getElementById('edit-quiero').value.trim();
+  h.para        = document.getElementById('edit-para').value.trim();
+  h.descripcion = document.getElementById('edit-descripcion').value.trim();
+  h.prioridad   = document.getElementById('edit-prioridad').value;
+  h.tipo        = document.getElementById('edit-tipo').value;
+  h.epicaId     = document.getElementById('edit-epica').value;
+  h.criterios   = leerCriteriosEdit(h.id);
+  guardar(); renderCards(); dashboard();
+  cerrarEditModal();
+  toast(`✅ "${titulo}" actualizada`);
+}
+
+function cerrarEditModal() {
+  document.getElementById('edit-modal-back').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function cerrarEditFuera(e) {
+  if (e.target === document.getElementById('edit-modal-back')) cerrarEditModal();
+}
+
+// ── COPIAR HISTORIA ──────────────────────────────────────────────────────────
+function copiarHistoria(id) {
+  const h = historias.find(x => x.id === id);
+  if (!h) return;
+  const epica = h.epicaId ? (epicas.find(e => e.id === h.epicaId)?.nombre || '') : '';
+  const criteriosText = (h.criterios || []).map((c, ci) => {
+    const tcId = `${h.id}-TC-${String(ci+1).padStart(3,'0')}`;
+    const t = TC_TIPOS[c.tipo] || {label: c.tipo};
+    const lines = c.pasos.map(p =>
+      `  ${p.kw === 'And' ? '  And' : p.kw} ${p.texto}`
+    ).join('\n');
+    return `  ${tcId} — ${c.titulo} [${t.label}]\n${lines}`;
+  }).join('\n\n');
+  const text = [
+    `# ${h.id}: ${h.titulo}`,
+    `Como ${h.como}, quiero ${h.quiero}, para ${h.para}.`,
+    h.descripcion ? `\n${h.descripcion}` : '',
+    `\nPrioridad: ${h.prioridad} | Tipo: ${h.tipo}${epica ? ` | Épica: ${epica}` : ''}`,
+    `\nCriterios de aceptación (Gherkin):\n${criteriosText || '  Sin criterios'}`,
+    `\nDoR: ${pct(h.dor)}% | DoD: ${pct(h.dod)}%`
+  ].filter(Boolean).join('\n');
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(`[data-copy-id="${CSS.escape(id)}"]`);
+    if (btn) { btn.textContent = '✓'; setTimeout(() => { btn.textContent = '📋'; }, 2000); }
+    toast('📋 Historia copiada al portapapeles');
+  }).catch(() => toast('⚠️ No se pudo copiar', 'warn'));
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+
+// ── EXPORTAR MARKDOWN ─────────────────────────────────────────────────────────
+function huMd(h) {
+  const pd = pct(h.dor), pp = pct(h.dod);
+  let md = `# ${h.id} — ${h.titulo}\n\n`;
+  md += `**Prioridad:** ${h.prioridad} | **Tipo:** ${h.tipo} | **Creada:** ${new Date(h.creadoEn).toLocaleDateString('es-ES')}`;
+  if (h.origen === 'ia') md += ` | **Origen:** IA Vision`;
+  if (h.origen === 'figma') md += ` | **Origen:** Figma`;
+  md += `\n\n## Historia de Usuario\n\n- **Como** ${h.como},\n- **quiero** ${h.quiero},\n- **para** ${h.para}.\n\n`;
+  if (h.descripcion) md += `> ${h.descripcion}\n\n`;
+  md += `## Criterios de Aceptación (Gherkin)\n\n`;
+  (h.criterios||[]).forEach(c => {
+    md += `### ${c.id} — ${c.titulo}\n\n\`\`\`gherkin\n`;
+    c.pasos.forEach(paso => { md += `  ${paso.kw==='Y'?'  Y':paso.kw} ${paso.texto}\n`; });
+    md += `\`\`\`\n\n`;
+  });
+  md += `## Definition of Ready (DoR) — ${pd}%\n\n`;
+  h.dor.forEach(it => { md += `- [${it.checked?'x':' '}] ${it.texto}\n`; });
+  md += `\n## Definition of Done (DoD) — ${pp}%\n\n`;
+  h.dod.forEach(it => { md += `- [${it.checked?'x':' '}] ${it.texto}\n`; });
+  md += '\n---\n\n';
+  return md;
+}
+function exportarTodo() {
+  if (!historias.length) { toast('⚠️ No hay historias para exportar', 'warn'); return; }
+  let md = `# Historias de Usuario — Exportación ISTQB\n\n**Fecha:** ${new Date().toLocaleDateString('es-ES')} | **Total:** ${historias.length}\n\n---\n\n`;
+  md += historias.map(huMd).join('');
+  descargar(md, `historias-${Date.now()}.md`);
+  toast(`⬇ ${historias.length} historias exportadas`);
+}
+function exportarHistoria() {
+  const h = historias.find(x => x.id === idActual);
+  if (!h) return;
+  descargar(huMd(h), `${h.id}.md`);
+  toast(`⬇ ${h.id} exportada`);
+}
+function descargar(contenido, nombre) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([contenido], {type:'text/markdown'}));
+  a.download = nombre;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+// ── EJEMPLOS ──────────────────────────────────────────────────────────────────
+function cargarEjemplos() {
+  if (historias.length && !confirm('Se agregarán 3 historias de ejemplo a las existentes. ¿Continuar?')) return;
+  const demos = [
+    {titulo:'Inicio de sesión con email y contraseña',como:'usuario registrado en el sistema',quiero:'iniciar sesión con mi email y contraseña',para:'acceder a mi panel de usuario de forma segura',descripcion:'Login mediante email y password. Validar formato de email, bloqueo tras 3 intentos fallidos (login, password), redirección al dashboard. Requiere HTTPS.',prioridad:'Alta',tipo:'Seguridad',dorChecked:[0,1,2,4,7,9,10],dodChecked:[0,4]},
+    {titulo:'Pago con tarjeta de crédito en checkout',como:'cliente con carrito de compra activo',quiero:'realizar el pago con mi tarjeta de crédito mediante la pasarela de pago API',para:'completar mi compra de forma rápida y segura',descripcion:'Integración con API de pasarela de pago. Manejo de transacción rechazada, pago fallido, fondos insuficientes y timeout del servicio externo. Cumplimiento PCI DSS.',prioridad:'Alta',tipo:'Integración',dorChecked:[0,1,2,3,4,5,7,8,9,11],dodChecked:[0,3,4,5]},
+    {titulo:'Exportar reporte de ventas a PDF',como:'administrador con rol de reportes',quiero:'exportar el reporte mensual de ventas en formato PDF',para:'compartir los resultados con la dirección ejecutiva',descripcion:'Generación de reporte PDF asíncrona. Con más de 10.000 registros debe procesarse en background. Verificar permisos de acceso al módulo de reportes. Responsive para vista previa.',prioridad:'Media',tipo:'Funcional',dorChecked:[0,1,2,4,7],dodChecked:[0]}
+  ];
+  demos.forEach(d => {
+    const h = { id:generarId(), titulo:d.titulo, como:d.como, quiero:d.quiero, para:d.para,
+                descripcion:d.descripcion, prioridad:d.prioridad, tipo:d.tipo,
+                criterios:[], dor:mkDoR(), dod:mkDoD(), creadoEn:new Date().toISOString(), origen:'manual' };
+    h.criterios = generarCriterios(h);
+    d.dorChecked.forEach(i => { if (h.dor[i]) h.dor[i].checked = true; });
+    d.dodChecked.forEach(i => { if (h.dod[i]) h.dod[i].checked = true; });
+    historias.unshift(h);
+  });
+  guardar(); renderCards(); dashboard();
+  toast('✨ 3 historias de ejemplo cargadas correctamente');
+}
+
+// ── IMPORT PANEL UI ───────────────────────────────────────────────────────────
+function toggleImportar() {
+  const body = document.getElementById('importar-body');
+  const chev = document.getElementById('importar-chevron');
+  const hdr  = document.querySelector('.import-card-header');
+  const open = body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+  hdr.setAttribute('aria-expanded', open);
+}
+
+function switchTab(tab) {
+  ['imagen','figma','json'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
+  });
+}
+
+function togglePass(inputId) {
+  const el = document.getElementById(inputId);
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+
+// ── IMAGE HANDLING ────────────────────────────────────────────────────────────
+function dzDragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('drag-over'); }
+function dzDragLeave()  { document.getElementById('dropzone').classList.remove('drag-over'); }
+function dzDrop(e) {
+  e.preventDefault();
+  dzDragLeave();
+  const file = e.dataTransfer.files[0];
+  if (file) processImageFile(file);
+}
+function fileSelected(e) {
+  const file = e.target.files[0];
+  if (file) processImageFile(file);
+}
+function processImageFile(file) {
+  if (!file.type.startsWith('image/')) { toast('⚠️ El archivo debe ser una imagen', 'warn'); return; }
+  if (file.size > 20 * 1024 * 1024) { toast('⚠️ La imagen excede 20 MB', 'warn'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const dataUrl = ev.target.result;
+    imagenBase64 = dataUrl.split(',')[1];
+    imagenType   = file.type;
+    document.getElementById('preview-img').src = dataUrl;
+    document.getElementById('img-preview').style.display = 'block';
+    document.getElementById('dropzone').style.display = 'none';
+    document.getElementById('btn-gen-imagen').disabled = false;
+    if (apiCfg && apiCfg.key) document.getElementById('btn-gen-direct').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+function clearImage() {
+  imagenBase64 = null; imagenType = null;
+  document.getElementById('preview-img').src = '';
+  document.getElementById('img-preview').style.display = 'none';
+  document.getElementById('dropzone').style.display = 'block';
+  document.getElementById('btn-gen-imagen').disabled = true;
+  document.getElementById('btn-gen-direct').disabled = true;
+  document.getElementById('file-input').value = '';
+}
+
+// ── PROMPTS PARA CLAUDE CODE (sin API key) ───────────────────────────────────
+const PROMPT_BASE = `Actúa como analista de software experto en ISTQB y metodologías ágiles.
+Analiza el contenido y genera historias de usuario completas en ESPAÑOL.
+
+Responde ÚNICAMENTE con un array JSON válido (sin texto adicional, sin bloques markdown):
+[{"titulo":"Título descriptivo","como":"rol del usuario","quiero":"acción que desea realizar","para":"objetivo de negocio","descripcion":"palabras clave técnicas: login, email, pago, API, archivo, reporte, búsqueda, notificación, permisos, responsive, etc.","prioridad":"Alta","tipo":"Funcional"}]
+
+Reglas:
+- Genera entre 3 y 8 historias según la complejidad
+- "prioridad": Alta, Media o Baja
+- "tipo": Funcional, No funcional, Integración, UI/UX o Seguridad
+- SOLO el array JSON, sin texto adicional`;
+
+// ── PARSE IA RESPONSE ─────────────────────────────────────────────────────────
+function parseHistoriasIA(text) {
+  // Extraer array JSON del texto (puede venir con o sin bloque código)
+  let jsonStr = text;
+  const blockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (blockMatch) jsonStr = blockMatch[1];
+  else {
+    const arrMatch = text.match(/(\[[\s\S]*\])/);
+    if (arrMatch) jsonStr = arrMatch[1];
+  }
+  try {
+    const arr = JSON.parse(jsonStr.trim());
+    return Array.isArray(arr) ? arr : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+function crearHistoriasDesdeIA(items, origen, fuente) {
+  const creadas = [];
+  items.forEach(item => {
+    const titulo   = String(item.titulo   || item.title       || 'Historia sin título').trim();
+    const como     = String(item.como     || item.as          || 'usuario').trim();
+    const quiero   = String(item.quiero   || item.want        || 'realizar esta acción').trim();
+    const para     = String(item.para     || item.so_that     || item['para'] || 'obtener valor').trim();
+    const desc     = String(item.descripcion || item.description || '').trim();
+    const prioridad = ['Alta','Media','Baja'].includes(item.prioridad) ? item.prioridad : 'Media';
+    const tipo     = ['Funcional','No funcional','Integración','UI/UX','Seguridad'].includes(item.tipo) ? item.tipo : 'Funcional';
+
+    const h = { id:generarId(), titulo, como, quiero, para, descripcion:desc,
+                prioridad, tipo, epicaId: epicaFiltro || '', criterios:[], dor:mkDoR(), dod:mkDoD(),
+                creadoEn:new Date().toISOString(), origen, fuente: fuente || '' };
+    h.criterios = generarCriterios(h);
+    historias.unshift(h);
+    creadas.push(h);
+  });
+  guardar(); renderCards(); dashboard();
+  return creadas;
+}
+
+// ── PREPARAR IMAGEN PARA CLAUDE CODE ─────────────────────────────────────────
+function prepararImagen() {
+  if (!imagenBase64) { toast('⚠️ Carga una imagen primero', 'warn'); return; }
+  const contexto = document.getElementById('img-contexto').value.trim();
+  const prompt = `Analiza la imagen que te comparto (wireframe, mockup, screenshot o flujo de usuario).
+Identifica todas las funcionalidades, pantallas y features visibles.
+${contexto ? `Contexto adicional: ${contexto}\n` : ''}
+${PROMPT_BASE}`;
+
+  document.getElementById('img-prompt-text').value = prompt;
+  document.getElementById('img-prompt-section').style.display = 'block';
+  document.getElementById('btn-gen-imagen').textContent = '✓ Prompt listo — cópialo arriba';
+  toast('📋 Prompt listo. Cópialo, ve a claude.ai (u otra IA), adjunta la imagen y pégalo.');
+}
+
+// ── PREPARAR FIGMA PARA CLAUDE CODE ──────────────────────────────────────────
+function extractFigmaKey(url) {
+  const m = url.match(/figma\.com\/(?:design|file|proto)\/([A-Za-z0-9]+)/);
+  return m ? m[1] : null;
+}
+
+function updateFigmaPrompt() {
+  const url = document.getElementById('figma-url').value.trim();
+  const contexto = document.getElementById('figma-contexto').value.trim();
+  const key = extractFigmaKey(url);
+  const preview = document.getElementById('figma-preview');
+  const promptBox = document.getElementById('figma-prompt-box');
+
+  if (key) {
+    document.getElementById('figma-file-key').textContent = `File Key: ${key}`;
+    preview.classList.add('visible');
+    const prompt = `Lee el archivo de Figma en esta URL y analiza todo el diseño:
+${url}
+${contexto ? `Contexto del proyecto: ${contexto}\n` : ''}
+${PROMPT_BASE}`;
+    document.getElementById('figma-prompt-text').value = prompt;
+    promptBox.style.display = 'block';
+  } else {
+    preview.classList.remove('visible');
+    promptBox.style.display = 'none';
+  }
+}
+
+// ── COPIAR PROMPT AL PORTAPAPELES ─────────────────────────────────────────────
+function copiarPrompt(textareaId, btnId) {
+  const texto = document.getElementById(textareaId).value;
+  if (!texto) return;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = document.getElementById(btnId);
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2500);
+  }).catch(() => {
+    // Fallback for older browsers
+    const el = document.getElementById(textareaId);
+    el.select(); document.execCommand('copy');
+    toast('✓ Copiado al portapapeles');
+  });
+}
+
+// ── IMPORTAR JSON ─────────────────────────────────────────────────────────────
+function importarJSON() {
+  const texto = document.getElementById('json-paste').value.trim();
+  if (!texto) { toast('⚠️ Pega el JSON en el área de texto primero', 'warn'); return; }
+  const origen = document.getElementById('json-origen').value;
+  _procesarJSONTexto(texto, origen, '');
+}
+
+function importarJSONFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const origen = document.getElementById('json-origen').value;
+    _procesarJSONTexto(e.target.result, origen, file.name);
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function _procesarJSONTexto(texto, origen, fuente) {
+  const items = parseHistoriasIA(texto);
+  if (!items || !items.length) {
+    toast('❌ JSON inválido o vacío. Verifica el formato y vuelve a intentarlo.', 'error');
+    return;
+  }
+  const creadas = crearHistoriasDesdeIA(items, origen, fuente);
+  mostrarBannerIA(`${origen==='figma'?'🎨':'🤖'} ${creadas.length} historias importadas correctamente`);
+  toast(`✅ ${creadas.length} historias importadas`);
+  document.getElementById('json-paste').value = '';
+  switchTab('imagen'); // reset to first tab
+}
+
+function toggleFormatoEjemplo() {
+  const el = document.getElementById('formato-ejemplo');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── BANNER IA ─────────────────────────────────────────────────────────────────
+function mostrarBannerIA(msg) {
+  const b = document.getElementById('ia-banner');
+  document.getElementById('ia-banner-text').textContent = msg;
+  b.classList.add('visible');
+  setTimeout(() => b.classList.remove('visible'), 8000);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg, tipo) {
+  const c = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  if (tipo === 'warn')  el.style.background = '#92400e';
+  if (tipo === 'error') el.style.background = '#991b1b';
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(() => el.remove(), 320); }, 4000);
+}
+
+// ── ÉPICAS ───────────────────────────────────────────────────────────────────
+function generarEpicaId() { return 'EP-' + Date.now().toString(36).toUpperCase(); }
+
+function inicializarColorPicker() {
+  const el = document.getElementById('epic-color-picker');
+  el.innerHTML = '<span class="epic-color-picker-label">Color:</span>' +
+    EPIC_COLORS.map((c, i) =>
+      `<div class="epic-color-dot${i===0?' sel':''}" style="background:${c}" onclick="selEpicaColor('${c}',this)" title="${c}"></div>`
+    ).join('');
+}
+function selEpicaColor(color, dot) {
+  epicaColorActual = color;
+  document.querySelectorAll('.epic-color-dot').forEach(d => d.classList.remove('sel'));
+  dot.classList.add('sel');
+}
+
+function crearEpica() {
+  const nombre = document.getElementById('epic-nombre').value.trim();
+  if (!nombre) { toast('⚠️ Escribe el nombre de la épica', 'warn'); return; }
+  if (epicas.find(e => e.nombre.toLowerCase() === nombre.toLowerCase()))
+    { toast('⚠️ Ya existe una épica con ese nombre', 'warn'); return; }
+  epicas.push({ id: generarEpicaId(), nombre, color: epicaColorActual });
+  guardarEpicas();
+  document.getElementById('epic-nombre').value = '';
+  renderEpicas();
+  actualizarSelectEpicas();
+  toast(`✅ Épica "${nombre}" creada`);
+}
+
+function eliminarEpica(id, ev) {
+  ev.stopPropagation();
+  const ep = epicas.find(e => e.id === id);
+  if (!ep) return;
+  const count = historias.filter(h => h.epicaId === id).length;
+  const msg = count
+    ? `¿Eliminar la épica "${ep.nombre}"? Las ${count} HU asociadas quedarán sin épica.`
+    : `¿Eliminar la épica "${ep.nombre}"?`;
+  if (!confirm(msg)) return;
+  epicas = epicas.filter(e => e.id !== id);
+  historias.forEach(h => { if (h.epicaId === id) h.epicaId = ''; });
+  guardar(); guardarEpicas();
+  if (epicaFiltro === id) epicaFiltro = null;
+  renderEpicas(); actualizarSelectEpicas(); renderCards(); dashboard();
+  toast('🗑 Épica eliminada');
+}
+
+function setEpicaFiltro(id) {
+  epicaFiltro = epicaFiltro === id ? null : id;
+  renderEpicas();
+  filtrar();
+}
+
+function renderEpicas() {
+  const list = document.getElementById('epic-list');
+  const badge = document.getElementById('epic-total-badge');
+  badge.textContent = epicas.length;
+
+  if (!epicas.length) {
+    list.innerHTML = '<div class="epic-empty">Sin épicas — crea la primera arriba</div>';
+    return;
+  }
+  const allActive = !epicaFiltro;
+  const totalHUs = historias.length;
+  list.innerHTML =
+    `<div class="epic-all-item${allActive?' active':''}" onclick="setEpicaFiltro(null)">
+       <span style="font-size:.85rem">🗂</span>
+       <span style="flex:1;font-size:.82rem">Todas las historias</span>
+       <span class="epic-count">${totalHUs}</span>
+     </div>` +
+    epicas.map(ep => {
+      const cnt = historias.filter(h => h.epicaId === ep.id).length;
+      const active = epicaFiltro === ep.id;
+      return `<div class="epic-item${active?' active':''}" onclick="setEpicaFiltro('${esc(ep.id)}')">
+        <div class="epic-dot" style="background:${esc(ep.color)}"></div>
+        <span class="epic-name">${esc(ep.nombre)}</span>
+        <span class="epic-count">${cnt}</span>
+        <button class="epic-del" onclick="eliminarEpica('${esc(ep.id)}',event)" title="Eliminar épica">✕</button>
+      </div>`;
+    }).join('');
+}
+
+function actualizarSelectEpicas() {
+  const sel = document.getElementById('hu-epica');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Sin épica</option>' +
+    epicas.map(ep => `<option value="${esc(ep.id)}">${esc(ep.nombre)}</option>`).join('');
+  if (cur && epicas.find(e => e.id === cur)) sel.value = cur;
+}
+
+function toggleEpicas() {
+  const body = document.getElementById('epicas-body');
+  const chev = document.getElementById('epicas-chevron');
+  const hdr  = document.querySelector('#card-epicas .import-card-header');
+  const open = body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+  hdr.setAttribute('aria-expanded', open);
+}
+
+// ── SELECCIÓN ────────────────────────────────────────────────────────────────
+function huCardClick(id, ev) {
+  if (modoSeleccion) { toggleSeleccion(id); }
+  else { abrirModal(id); }
+}
+function toggleModoSeleccion() {
+  modoSeleccion = !modoSeleccion;
+  if (!modoSeleccion) { seleccionadas.clear(); actualizarSelBar(); }
+  const btn = document.getElementById('btn-sel-mode');
+  btn.classList.toggle('active', modoSeleccion);
+  btn.textContent = modoSeleccion ? '✕ Cancelar' : '☑ Seleccionar';
+  renderCards();
+}
+function toggleSeleccion(id) {
+  if (seleccionadas.has(id)) seleccionadas.delete(id);
+  else seleccionadas.add(id);
+  actualizarSelBar();
+  const card = document.querySelector(`[aria-label*="${id}"]`);
+  if (card) {
+    card.classList.toggle('selected', seleccionadas.has(id));
+    const cb = card.querySelector('.hu-card-check');
+    if (cb) cb.checked = seleccionadas.has(id);
+  }
+}
+function seleccionarTodas() {
+  const visibles = document.querySelectorAll('#cards-container .hu-card');
+  visibles.forEach(el => {
+    const match = el.getAttribute('aria-label') || '';
+    const id = match.match(/HU-[A-Z0-9]+/)?.[0];
+    if (id) { seleccionadas.add(id); el.classList.add('selected'); const cb = el.querySelector('.hu-card-check'); if(cb) cb.checked = true; }
+  });
+  actualizarSelBar();
+}
+function deseleccionarTodas() {
+  seleccionadas.clear();
+  document.querySelectorAll('#cards-container .hu-card').forEach(el => {
+    el.classList.remove('selected');
+    const cb = el.querySelector('.hu-card-check'); if(cb) cb.checked = false;
+  });
+  actualizarSelBar();
+}
+function actualizarSelBar() {
+  const n = seleccionadas.size;
+  const bar = document.getElementById('sel-bar');
+  bar.classList.toggle('visible', modoSeleccion);
+  document.getElementById('sel-count').textContent =
+    n === 0 ? 'Sin selección' : `${n} historia${n>1?'s':''} seleccionada${n>1?'s':''}`;
+}
+
+// ── HELPERS EXPORT ────────────────────────────────────────────────────────────
+function parseTCSteps(pasos) {
+  const pre = [], steps = [], expected = [];
+  let phase = 'pre';
+  for (const p of pasos) {
+    if (p.kw === 'Scenario' || p.kw === 'Escenario') continue;
+    if      (p.kw === 'Given'  || p.kw === 'Dado')    { phase = 'pre';  pre.push(p.texto); }
+    else if (p.kw === 'When'   || p.kw === 'Cuando')  { phase = 'step'; steps.push(p.texto); }
+    else if (p.kw === 'Then'   || p.kw === 'Entonces'){ phase = 'exp';  expected.push(p.texto); }
+    else if (p.kw === 'And'    || p.kw === 'Y') {
+      if      (phase === 'pre')  pre.push(p.texto);
+      else if (phase === 'step') steps.push(p.texto);
+      else if (phase === 'exp')  expected.push(p.texto);
+    }
+  }
+  return { pre, steps, expected };
+}
+
+const TC_TIPOS = {
+  positivo: {label:'POSITIVO', bg:'#d1fae5', color:'#065f46'},
+  negativo: {label:'NEGATIVO', bg:'#fee2e2', color:'#991b1b'},
+  boundary: {label:'BOUNDARY', bg:'#fef3c7', color:'#92400e'},
+  nf:       {label:'NO FUNC.', bg:'#dbeafe', color:'#1e40af'},
+  condicional:{label:'CONDICIONAL',bg:'#f3e8ff',color:'#6d28d9'}
+};
+
+// ── EXPORTAR PDF ──────────────────────────────────────────────────────────────
+function exportarPDF() {
+  const ids = seleccionadas.size > 0
+    ? [...seleccionadas]
+    : historias.map(h => h.id);
+  if (!ids.length) { toast('⚠️ No hay historias para exportar', 'warn'); return; }
+  const lista = ids.map(id => historias.find(h => h.id === id)).filter(Boolean);
+
+  const KW_COLORS_PDF = {
+    Scenario: {c:'#c2410c', w:'700'},
+    Given:    {c:'#b45309', w:'600'},
+    When:     {c:'#15803d', w:'600'},
+    Then:     {c:'#b91c1c', w:'600'},
+    And:      {c:'#c2410c', w:'400'}
+  };
+
+  const pagesHtml = lista.map((h, hi) => {
+    const epica = h.epicaId ? epicas.find(e => e.id === h.epicaId) : null;
+
+    const tcBlocks = (h.criterios || []).map((c, ci) => {
+      const tcId = `${h.id}-TC-${String(ci+1).padStart(3,'0')}`;
+      const t = TC_TIPOS[c.tipo] || {label:c.tipo.toUpperCase(),bg:'#fef3c7',color:'#92400e'};
+      const lines = (c.pasos || []).map(p => {
+        const kc = KW_COLORS_PDF[p.kw] || {c:'#374151', w:'400'};
+        return `<div><span style="color:${kc.c};font-weight:${kc.w};min-width:72pt;display:inline-block">${escHtml(p.kw)}</span><span style="color:#1c1412"> ${escHtml(p.texto)}</span></div>`;
+      }).join('');
+      return `<div style="margin-bottom:10pt;break-inside:avoid">
+        <div style="display:flex;align-items:center;gap:8pt;margin-bottom:4pt">
+          <span style="font-size:7pt;font-weight:700;color:#6b4c2a;background:#fef3c7;border:0.5pt solid #d97706;padding:1pt 5pt;border-radius:3pt;white-space:nowrap">${escHtml(tcId)}</span>
+          <span style="font-size:7pt;font-weight:700;padding:1pt 5pt;border-radius:3pt;background:${t.bg};color:${t.color}">${t.label}</span>
+          <span style="font-size:8pt;font-weight:600;color:#1c1412">${escHtml(c.titulo)}</span>
+        </div>
+        <pre style="margin:0;background:#fdf8f3;border:0.5pt solid #e8d5b8;border-left:2.5pt solid #ea580c;border-radius:0 4pt 4pt 0;padding:6pt 10pt;font-family:'Courier New',Courier,monospace;font-size:8pt;line-height:1.6;white-space:pre-wrap;word-break:break-word">${lines}</pre>
+      </div>`;
+    }).join('');
+
+    const dorPct = pct(h.dor), dodPct = pct(h.dod);
+    const dorItems = h.dor.map(i=>`<li style="${i.checked?'color:#059669':'color:#374151'}">${i.checked?'☑':'☐'} ${escHtml(i.texto)}</li>`).join('');
+    const dodItems = h.dod.map(i=>`<li style="${i.checked?'color:#059669':'color:#374151'}">${i.checked?'☑':'☐'} ${escHtml(i.texto)}</li>`).join('');
+
+    return `<div class="page">
+      <div style="border-bottom:2.5pt solid #ea580c;padding-bottom:8pt;margin-bottom:14pt;display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:8pt;font-weight:700;color:#ea580c;letter-spacing:.07em;text-transform:uppercase;margin-bottom:3pt">
+            ${escHtml(h.id)}${epica?` · <span style="color:${escHtml(epica.color)}">${escHtml(epica.nombre)}</span>`:''}
+          </div>
+          <div style="font-size:16pt;font-weight:800;color:#111827;line-height:1.2;margin-bottom:4pt">${escHtml(h.titulo)}</div>
+          <div style="font-size:8pt;color:#6b7280">
+            <span style="margin-right:12pt">📊 <strong>${escHtml(h.prioridad)}</strong></span>
+            <span style="margin-right:12pt">🧪 <strong>${escHtml(h.tipo)}</strong></span>
+            <span>📅 ${new Date(h.creadoEn).toLocaleDateString('es-ES')}</span>
+          </div>
+        </div>
+        <div style="text-align:right;font-size:8pt;color:#9ca3af">
+          <div>DoR <strong style="color:#ea580c">${dorPct}%</strong></div>
+          <div>DoD <strong style="color:#059669">${dodPct}%</strong></div>
+        </div>
+      </div>
+
+      <div style="background:#fff8f3;border-left:3pt solid #ea580c;padding:8pt 10pt;font-size:9pt;margin-bottom:14pt;border-radius:0 4pt 4pt 0">
+        <strong style="color:#ea580c">Historia de usuario</strong><br>
+        Como <strong>${escHtml(h.como)}</strong>, quiero ${escHtml(h.quiero)}, para ${escHtml(h.para)}.
+        ${h.descripcion ? `<div style="margin-top:4pt;color:#6b7280;font-size:8pt">${escHtml(h.descripcion)}</div>` : ''}
+      </div>
+
+      <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#ea580c;border-bottom:1pt solid #fde8d0;padding-bottom:3pt;margin-bottom:10pt">
+        Criterios de aceptación Gherkin — ISTQB (${(h.criterios||[]).length} escenarios)
+      </div>
+      <div>${tcBlocks}</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14pt;margin-top:14pt">
+        <div>
+          <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;color:#4f46e5;margin-bottom:5pt">Definition of Ready (DoR) — ${dorPct}%</div>
+          <ul style="list-style:none;padding:0;margin:0;font-size:7.5pt">${dorItems}</ul>
+        </div>
+        <div>
+          <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;color:#059669;margin-bottom:5pt">Definition of Done (DoD) — ${dodPct}%</div>
+          <ul style="list-style:none;padding:0;margin:0;font-size:7.5pt">${dodItems}</ul>
+        </div>
+      </div>
+
+      <div style="margin-top:14pt;padding-top:5pt;border-top:0.5pt solid #e5e7eb;font-size:7pt;color:#9ca3af;display:flex;justify-content:space-between">
+        <span>Generado con Analista HU — ISTQB Foundation Level</span>
+        <span>${new Date().toLocaleDateString('es-ES')} · Historia ${hi+1}/${lista.length}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+    <title>Test Cases ISTQB — ${lista.length} historias</title>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      @page{margin:1.5cm;size:A4}
+      body{font-family:Arial,'Helvetica Neue',sans-serif;font-size:10pt;color:#111827;background:#fff}
+      .page{page-break-after:always;max-width:100%;padding:0}
+      .page:last-child{page-break-after:auto}
+    </style>
+    </head><body>${pagesHtml}
+    <script>window.onload=()=>{window.print()}<\/script>
+    </body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { toast('⚠️ El navegador bloqueó la ventana emergente. Permite pop-ups para este sitio.', 'warn'); return; }
+  w.document.write(html);
+  w.document.close();
+  toast(`📄 PDF generado: ${lista.length} historia${lista.length>1?'s':''}`);
+}
+
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── EXPORTAR CSV / EXCEL ──────────────────────────────────────────────────────
+function exportarCSV() {
+  const ids = seleccionadas.size > 0
+    ? [...seleccionadas]
+    : historias.map(h => h.id);
+  if (!ids.length) { toast('⚠️ No hay historias para exportar', 'warn'); return; }
+  const lista = ids.map(id => historias.find(h => h.id === id)).filter(Boolean);
+
+  const cols = ['HU_ID','Épica','Título','Como','Quiero','Para','Descripción','Prioridad','Tipo','DoR_%','DoD_%','TC_ID','Tipo_TC','Título_TC','Precondiciones','Pasos','Resultado_Esperado'];
+  const rows = [cols];
+
+  lista.forEach(h => {
+    const epica = h.epicaId ? (epicas.find(e => e.id === h.epicaId)?.nombre || '') : '';
+    const dorPct = pct(h.dor), dodPct = pct(h.dod);
+    (h.criterios || []).forEach((c, ci) => {
+      const tcId = `${h.id}-TC-${String(ci+1).padStart(3,'0')}`;
+      const {pre, steps, expected} = parseTCSteps(c.pasos);
+      const t = TC_TIPOS[c.tipo] || {label:c.tipo};
+      rows.push([
+        h.id, epica, h.titulo, h.como, h.quiero, h.para,
+        h.descripcion || '', h.prioridad, h.tipo,
+        dorPct + '%', dodPct + '%',
+        tcId, t.label, c.titulo,
+        pre.join(' | '), steps.join(' | '), expected.join(' | ')
+      ]);
+    });
+    if (!(h.criterios || []).length) {
+      rows.push([h.id, epica, h.titulo, h.como, h.quiero, h.para,
+        h.descripcion||'', h.prioridad, h.tipo, dorPct+'%', dodPct+'%',
+        '','','','','','']);
+    }
+  });
+
+  const csv = rows.map(r =>
+    r.map(cell => {
+      const s = String(cell == null ? '' : cell);
+      return (s.includes(',') || s.includes('"') || s.includes('\n'))
+        ? '"' + s.replace(/"/g, '""') + '"'
+        : s;
+    }).join(',')
+  ).join('\r\n');
+
+  const bom = '﻿';
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `test-cases-istqb-${Date.now()}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  toast(`📊 CSV descargado: ${rows.length - 1} filas. En Google Sheets: Archivo → Importar → Subir.`);
+}
+
+// ── API CONFIG ────────────────────────────────────────────────────────────────
+const SK_API = 'analista-api-cfg-v1';
+let apiCfg = null;
+
+const MODELS = {
+  claude: ['claude-opus-4-5','claude-sonnet-4-5','claude-haiku-4-5-20251001'],
+  openai: ['gpt-4o','gpt-4o-mini']
+};
+
+function cargarConfigIA() {
+  try { const d = localStorage.getItem(SK_API); if (d) apiCfg = JSON.parse(d); } catch(e) { apiCfg = null; }
+  updateModelOptions();
+  actualizarAPIBar();
+}
+
+function guardarConfigIA() {
+  const key = document.getElementById('cfg-key').value.trim();
+  const provider = document.getElementById('cfg-provider').value;
+  const model = document.getElementById('cfg-model').value;
+  if (!key) { toast('⚠️ Introduce una API key', 'warn'); return; }
+  apiCfg = { provider, model, key };
+  try { localStorage.setItem(SK_API, JSON.stringify(apiCfg)); } catch(e) {}
+  document.getElementById('api-cfg-panel').classList.remove('open');
+  actualizarAPIBar();
+  toast('✅ API key guardada');
+}
+
+function borrarConfigIA() {
+  apiCfg = null;
+  try { localStorage.removeItem(SK_API); } catch(e) {}
+  document.getElementById('cfg-key').value = '';
+  actualizarAPIBar();
+  toast('🗑 API key eliminada');
+}
+
+function toggleCfgPanel() {
+  document.getElementById('api-cfg-panel').classList.toggle('open');
+}
+
+function updateModelOptions() {
+  const provider = document.getElementById('cfg-provider').value;
+  const sel = document.getElementById('cfg-model');
+  const current = apiCfg && apiCfg.provider === provider ? apiCfg.model : null;
+  sel.innerHTML = MODELS[provider].map(m => `<option value="${m}"${m===current?' selected':''}>${m}</option>`).join('');
+}
+
+function actualizarAPIBar() {
+  const dot = document.getElementById('api-dot');
+  const txt = document.getElementById('api-status-text');
+  const btnDirect = document.getElementById('btn-gen-direct');
+  if (apiCfg && apiCfg.key) {
+    dot.classList.add('ok');
+    txt.classList.add('ok');
+    const prov = apiCfg.provider === 'claude' ? 'Claude' : 'OpenAI';
+    txt.textContent = `${prov} · ${apiCfg.model}`;
+    if (btnDirect) { btnDirect.style.display = 'flex'; if (imagenBase64) btnDirect.disabled = false; }
+    document.getElementById('cfg-provider').value = apiCfg.provider;
+    updateModelOptions();
+    document.getElementById('cfg-key').value = apiCfg.key;
+  } else {
+    dot.classList.remove('ok');
+    txt.classList.remove('ok');
+    txt.textContent = 'Sin API key — modo prompt manual';
+    if (btnDirect) { btnDirect.style.display = 'none'; btnDirect.disabled = true; }
+  }
+}
+
+// ── LLAMADA DIRECTA A API ─────────────────────────────────────────────────────
+async function generarConIA() {
+  if (!imagenBase64) { toast('⚠️ Carga una imagen primero', 'warn'); return; }
+  if (!apiCfg || !apiCfg.key) { toast('⚠️ Configura tu API key primero', 'warn'); return; }
+
+  const btn = document.getElementById('btn-gen-direct');
+  const contexto = document.getElementById('img-contexto').value.trim();
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>&nbsp; Analizando imagen…';
+
+  const prompt = `Analiza la imagen que te comparto (wireframe, mockup, screenshot o flujo de usuario).
+Identifica todas las funcionalidades, pantallas y features visibles.
+${contexto ? `Contexto adicional: ${contexto}\n` : ''}
+${PROMPT_BASE}`;
+
+  try {
+    const text = apiCfg.provider === 'claude'
+      ? await llamarClaudeAPI(prompt)
+      : await llamarOpenAIAPI(prompt);
+
+    const items = parseHistoriasIA(text);
+    if (!items || !items.length) {
+      toast('❌ La IA no devolvió un JSON válido. Intenta de nuevo.', 'error');
+      return;
+    }
+    const creadas = crearHistoriasDesdeIA(items, 'ia', 'api-directo');
+    mostrarBannerIA(`🤖 ${creadas.length} historias generadas desde imagen con IA`);
+    toast(`✅ ${creadas.length} historias creadas`);
+    clearImage();
+  } catch(err) {
+    toast(`❌ ${err.message || 'Error al llamar a la API'}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🤖 Generar historias con IA';
+    if (!imagenBase64) btn.disabled = true;
+  }
+}
+
+async function llamarClaudeAPI(prompt) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiCfg.key,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: apiCfg.model,
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: imagenType, data: imagenBase64 } },
+        { type: 'text', text: prompt }
+      ]}]
+    })
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data.content[0].text;
+}
+
+async function llamarOpenAIAPI(prompt) {
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiCfg.key}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: apiCfg.model,
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: [
+        { type: 'text', text: prompt },
+        { type: 'image_url', image_url: { url: `data:${imagenType};base64,${imagenBase64}` } }
+      ]}]
+    })
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data.choices[0].message.content;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(function init() {
+  cargar(); cargarEpicas();
+  renderCards(); dashboard();
+  renderEpicas(); actualizarSelectEpicas();
+  inicializarColorPicker();
+  cargarConfigIA();
+})();
+</script>
+</body>
+</html>
