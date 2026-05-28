@@ -8,6 +8,7 @@ import { toast, toastAction } from './toast.js';
 import { navigate } from './router.js';
 import { showConfirm } from './auth.js';
 import { generarHistoriasDesdeImagenConIA } from './import.js';
+import { extraerTextoDeArchivo, generarHistoriasDesdeDoc } from './importDoc.js';
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function getGreeting() {
@@ -119,11 +120,18 @@ export function renderDashboard() {
     </div>
 
     <div class="creation-card creation-card-blue" id="ac-api" role="button" tabindex="0" aria-label="Historias técnicas desde API">
-      <span class="creation-card-new-badge creation-badge-blue">Nuevo</span>
       <div class="creation-card-icon creation-icon-blue">🔌</div>
       <div class="creation-card-title">API / Microservicio</div>
       <div class="creation-card-desc">Importa Swagger, docs REST o contratos y genera historias técnicas ISTQB con IA.</div>
       <div class="creation-card-cta creation-cta-blue">Importar documentación →</div>
+    </div>
+
+    <div class="creation-card creation-card-rose" id="ac-doc" role="button" tabindex="0" aria-label="Generar HU desde documento">
+      <span class="creation-card-new-badge creation-badge-rose">Nuevo</span>
+      <div class="creation-card-icon creation-icon-rose">📄</div>
+      <div class="creation-card-title">Desde Documento</div>
+      <div class="creation-card-desc">Sube un PDF, Word o TXT con requisitos y la IA extrae y genera las historias ISTQB.</div>
+      <div class="creation-card-cta creation-cta-rose">Subir documento →</div>
     </div>
 
   </div>
@@ -136,6 +144,7 @@ export function renderDashboard() {
   document.getElementById('ac-imagen').addEventListener('click', () => navigate('/historias/nueva-imagen'));
   document.getElementById('ac-flujos').addEventListener('click',  () => navigate('/flujos'));
   document.getElementById('ac-api').addEventListener('click',     () => navigate('/historias/nueva-api'));
+  document.getElementById('ac-doc').addEventListener('click',     () => navigate('/historias/nueva-doc'));
 
   // Keyboard navigation for creation cards
   document.querySelectorAll('.creation-card').forEach(card => {
@@ -2233,5 +2242,290 @@ function setupEditFormValidation(h) {
     actualizarHistoria(h.id, cambios);
     toast('Historia actualizada');
     navigate(`/historias/${h.id}`);
+  });
+}
+
+// ── IMPORTAR DESDE DOCUMENTO ──────────────────────────────────────────────────
+export function renderDocImportForm() {
+  const cfg    = state.apiCfg;
+  const hasApi = !!(cfg?.key);
+  const PROVIDER_LABELS = { claude: 'Claude', openai: 'OpenAI', grok: 'Grok (xAI)', groq: 'Groq' };
+  const aiStatusHtml = hasApi
+    ? `<div class="ai-status ai-status-ok">✓ IA activa — ${esc(PROVIDER_LABELS[cfg.provider] || cfg.provider)} · ${esc(cfg.model)}</div>`
+    : `<div class="ai-status ai-status-warn">⚠ Sin IA configurada. <a href="#/config" class="ai-cfg-link">Configurar API →</a></div>`;
+
+  const TIPOS_DOC = [
+    { id: 'prd',       icon: '📋', label: 'PRD / Especificación funcional' },
+    { id: 'acta',      icon: '📝', label: 'Acta de reunión / levantamiento' },
+    { id: 'requisitos',icon: '📐', label: 'Documento de requisitos' },
+    { id: 'negocio',   icon: '💼', label: 'Reglas de negocio' },
+    { id: 'tecnico',   icon: '⚙️',  label: 'Documento técnico / arquitectura' },
+  ];
+
+  document.getElementById('view').innerHTML = `
+<div class="form-view form-view-doc">
+  <div class="form-view-header">
+    <h1 class="page-title">Historias desde Documento</h1>
+    <p class="page-sub">Sube un PDF, Word o TXT con tus requisitos y la IA generará las historias de usuario ISTQB automáticamente</p>
+  </div>
+
+  <div class="form-card">
+    ${aiStatusHtml}
+
+    <!-- TIPO DE DOCUMENTO -->
+    <div class="form-group">
+      <label class="form-label">Tipo de documento</label>
+      <div class="doc-type-tabs">
+        ${TIPOS_DOC.map((t, i) => `
+        <button class="doc-type-btn${i === 0 ? ' active' : ''}" data-tipo="${esc(t.id)}" type="button">
+          <span>${t.icon}</span><span>${esc(t.label)}</span>
+        </button>`).join('')}
+      </div>
+    </div>
+
+    <!-- FILE DROP ZONE -->
+    <div class="form-group">
+      <label class="form-label">Archivo de requisitos *</label>
+      <div class="doc-drop-zone" id="doc-drop-zone">
+        <input type="file" id="doc-file-input" accept=".pdf,.docx,.doc,.txt,.md" class="doc-file-input" />
+        <div class="doc-drop-content" id="doc-drop-content">
+          <div class="doc-drop-icon">📄</div>
+          <div class="doc-drop-title">Arrastrá el archivo aquí o <strong>hacé clic para seleccionar</strong></div>
+          <div class="doc-drop-types">PDF · DOCX · TXT · MD</div>
+        </div>
+        <div class="doc-file-preview hidden" id="doc-file-preview">
+          <div class="doc-file-preview-icon" id="doc-preview-icon">📄</div>
+          <div class="doc-file-preview-info">
+            <div class="doc-file-name" id="doc-preview-name"></div>
+            <div class="doc-file-meta" id="doc-preview-meta"></div>
+          </div>
+          <button class="doc-file-remove" id="doc-file-remove" type="button" title="Quitar archivo">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEXTO EXTRAÍDO (preview editable) -->
+    <div class="form-group hidden" id="doc-texto-wrap">
+      <label class="form-label">
+        Texto extraído <span class="form-hint">Revisá y editá antes de enviar a la IA</span>
+      </label>
+      <div class="doc-texto-toolbar">
+        <span class="doc-char-count" id="doc-char-count">0 caracteres</span>
+        <button class="btn btn-ghost btn-xs" id="btn-doc-clear-texto" type="button">Limpiar</button>
+      </div>
+      <textarea id="doc-texto" class="form-control doc-texto-area" rows="10"
+        placeholder="El texto del documento aparecerá aquí para que puedas revisarlo antes de enviar a la IA…"></textarea>
+    </div>
+
+    <!-- NOTAS ADICIONALES -->
+    <div class="form-group">
+      <label class="form-label" for="doc-notas">
+        Instrucciones adicionales para la IA <span class="form-hint">(opcional)</span>
+      </label>
+      <input type="text" id="doc-notas" class="form-control"
+        placeholder="Ej: enfocate solo en el módulo de pagos, genera historias para el rol de administrador…" />
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" onclick="window.location.hash='#/dashboard'">Cancelar</button>
+      <button type="button" class="btn btn-accent btn-doc-gen" id="btn-doc-gen" disabled>
+        📄 Extraer texto del archivo
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div id="doc-result-section" class="hidden">
+    <div class="doc-result-header">
+      <h2 class="doc-result-title">Historias generadas</h2>
+      <p class="doc-result-sub" id="doc-result-sub"></p>
+    </div>
+    <div id="doc-historias-list" class="doc-historias-list"></div>
+    <div class="doc-result-actions">
+      <button class="btn btn-ghost" id="btn-doc-volver" type="button">← Volver</button>
+      <button class="btn btn-accent" id="btn-doc-guardar" type="button">Guardar todas →</button>
+    </div>
+  </div>
+
+</div>`;
+
+  // ── Estado local ────────────────────────────────────────────────────────────
+  let _file     = null;
+  let _tipo     = TIPOS_DOC[0].id;
+  let _textoExtracted = '';
+  let _items    = [];
+  let _step     = 'upload'; // 'upload' | 'preview' | 'result'
+
+  // ── Tipo de documento ───────────────────────────────────────────────────────
+  document.querySelectorAll('.doc-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.doc-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      _tipo = btn.dataset.tipo;
+    });
+  });
+
+  // ── File input ──────────────────────────────────────────────────────────────
+  const dropZone    = document.getElementById('doc-drop-zone');
+  const fileInput   = document.getElementById('doc-file-input');
+  const dropContent = document.getElementById('doc-drop-content');
+  const filePreview = document.getElementById('doc-file-preview');
+  const genBtn      = document.getElementById('btn-doc-gen');
+
+  function iconForExt(name) {
+    const e = name.split('.').pop().toLowerCase();
+    return e === 'pdf' ? '📕' : e === 'docx' || e === 'doc' ? '📘' : '📄';
+  }
+
+  function setFile(f) {
+    _file = f;
+    _step = 'upload';
+    document.getElementById('doc-texto-wrap').classList.add('hidden');
+    document.getElementById('doc-result-section').classList.add('hidden');
+    dropContent.classList.add('hidden');
+    filePreview.classList.remove('hidden');
+    document.getElementById('doc-preview-icon').textContent = iconForExt(f.name);
+    document.getElementById('doc-preview-name').textContent = f.name;
+    document.getElementById('doc-preview-meta').textContent =
+      (f.size / 1024).toFixed(1) + ' KB · ' + f.type;
+    genBtn.disabled = false;
+    genBtn.textContent = '📄 Extraer texto del archivo';
+  }
+
+  function clearFile() {
+    _file = null;
+    _step = 'upload';
+    fileInput.value = '';
+    dropContent.classList.remove('hidden');
+    filePreview.classList.add('hidden');
+    document.getElementById('doc-texto-wrap').classList.add('hidden');
+    document.getElementById('doc-result-section').classList.add('hidden');
+    genBtn.disabled = true;
+    genBtn.textContent = '📄 Extraer texto del archivo';
+  }
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) setFile(e.target.files[0]);
+  });
+  document.getElementById('doc-file-remove').addEventListener('click', clearFile);
+
+  // Drag & drop
+  ['dragover', 'dragenter'].forEach(ev =>
+    dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('doc-drop-active'); })
+  );
+  ['dragleave', 'drop'].forEach(ev =>
+    dropZone.addEventListener(ev, () => dropZone.classList.remove('doc-drop-active'))
+  );
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) setFile(f);
+  });
+
+  // ── Actualizar contador de caracteres ───────────────────────────────────────
+  document.getElementById('doc-texto')?.addEventListener('input', e => {
+    document.getElementById('doc-char-count').textContent =
+      e.target.value.length.toLocaleString() + ' caracteres';
+  });
+  document.getElementById('btn-doc-clear-texto')?.addEventListener('click', () => {
+    document.getElementById('doc-texto').value = '';
+    document.getElementById('doc-char-count').textContent = '0 caracteres';
+    _textoExtracted = '';
+  });
+
+  // ── Botón principal ─────────────────────────────────────────────────────────
+  genBtn.addEventListener('click', async () => {
+    if (_step === 'upload') {
+      // PASO 1: extraer texto
+      if (!_file) return;
+      genBtn.disabled = true;
+      genBtn.textContent = '⏳ Extrayendo texto…';
+      try {
+        _textoExtracted = await extraerTextoDeArchivo(_file);
+        if (!_textoExtracted.trim()) {
+          toast('No se pudo extraer texto del archivo. Probá con otro formato.', 'warn');
+          genBtn.disabled = false;
+          genBtn.textContent = '📄 Extraer texto del archivo';
+          return;
+        }
+        // Mostrar preview editable
+        const textoArea = document.getElementById('doc-texto');
+        textoArea.value = _textoExtracted;
+        document.getElementById('doc-char-count').textContent =
+          _textoExtracted.length.toLocaleString() + ' caracteres';
+        document.getElementById('doc-texto-wrap').classList.remove('hidden');
+        _step = 'preview';
+        genBtn.disabled = !hasApi;
+        genBtn.textContent = hasApi ? '✨ Generar historias con IA' : '⚠ Configura tu API primero';
+      } catch (err) {
+        toast('Error al leer el archivo: ' + err.message, 'error');
+        genBtn.disabled = false;
+        genBtn.textContent = '📄 Extraer texto del archivo';
+      }
+
+    } else if (_step === 'preview') {
+      // PASO 2: generar con IA
+      if (!hasApi) { toast('Configurá tu API key en ⚙ Configuración', 'warn'); return; }
+      const texto = document.getElementById('doc-texto').value.trim();
+      if (!texto) { toast('El texto está vacío', 'warn'); return; }
+      const notas = document.getElementById('doc-notas').value.trim();
+      genBtn.disabled = true;
+      genBtn.textContent = '⏳ Generando con IA…';
+      toast('Analizando documento con IA…', 'info');
+
+      _items = await generarHistoriasDesdeDoc(_tipo, notas, texto);
+
+      if (!_items || !_items.length) {
+        genBtn.disabled = false;
+        genBtn.textContent = '✨ Generar historias con IA';
+        return;
+      }
+
+      // Mostrar resultado
+      _step = 'result';
+      document.getElementById('doc-result-section').classList.remove('hidden');
+      document.getElementById('doc-result-sub').textContent =
+        `${_items.length} historias generadas desde "${_file?.name || 'documento'}"`;
+
+      const lista = document.getElementById('doc-historias-list');
+      lista.innerHTML = _items.map((item, i) => `
+        <div class="doc-hu-item" data-index="${i}">
+          <label class="doc-hu-check-row">
+            <input type="checkbox" class="doc-hu-check" data-index="${i}" checked>
+            <div class="doc-hu-info">
+              <div class="doc-hu-titulo">${esc(item.titulo || item.resumen || 'Historia ' + (i+1))}</div>
+              <div class="doc-hu-meta">
+                <span class="badge badge-tipo-jira">${esc(item.tipo || 'Story')}</span>
+                <span class="badge badge-${(item.prioridad||'medium').toLowerCase()}">${esc(item.prioridad || 'Medium')}</span>
+                <span class="doc-hu-como">Como ${esc(item.como)} · quiero ${esc(item.quiero)}</span>
+              </div>
+            </div>
+          </label>
+        </div>`).join('');
+
+      genBtn.disabled = true;
+      genBtn.textContent = '✓ Generado';
+      document.getElementById('doc-result-section').scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  // ── Guardar seleccionadas ───────────────────────────────────────────────────
+  document.getElementById('btn-doc-guardar')?.addEventListener('click', () => {
+    const checked = [...document.querySelectorAll('.doc-hu-check:checked')]
+      .map(cb => _items[Number(cb.dataset.index)])
+      .filter(Boolean);
+    if (!checked.length) { toast('Seleccioná al menos una historia', 'warn'); return; }
+    import('./historias.js').then(({ crearHistoriasDesdeIA }) => {
+      const creadas = crearHistoriasDesdeIA(checked, 'ia', 'documento');
+      toast(`${creadas.length} historias guardadas`);
+      navigate('/historias');
+    });
+  });
+
+  document.getElementById('btn-doc-volver')?.addEventListener('click', () => {
+    _step = 'preview';
+    document.getElementById('doc-result-section').classList.add('hidden');
+    genBtn.disabled = false;
+    genBtn.textContent = '✨ Generar historias con IA';
   });
 }

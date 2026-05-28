@@ -24,7 +24,7 @@ export const API_URLS = {
   grok:      _DEV ? '/proxy/xai/v1/chat/completions'            : 'https://api.x.ai/v1/chat/completions'
 };
 
-function getContextoProyecto() {
+export function getContextoProyecto() {
   const proj = state.proyectos.find(p => p.id === state.proyectoActivoId);
   if (!proj?.contexto?.length) return '';
   const textos = proj.contexto.map(c => `=== ${c.nombre} ===\n${c.texto}`).join('\n\n');

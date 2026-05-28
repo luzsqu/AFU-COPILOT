@@ -3,7 +3,7 @@ import { renderLogin }     from './auth.js';
 import { renderProjects }  from './projects.js';
 import { renderDashboard, renderHistoriasList, renderHistoriaForm,
          renderImageForm, renderHistoriaDetail, renderHistoriaEdit,
-         renderFlujosForm, renderAPIImportForm } from './ui.js';
+         renderFlujosForm, renderAPIImportForm, renderDocImportForm } from './ui.js';
 import { renderSidebar, updateBreadcrumb } from './sidebar.js';
 import { renderConfig } from './config.js';
 
@@ -15,6 +15,7 @@ const routes = {
   '/historias/nueva':      { render: renderHistoriaForm,  auth: true,  sidebar: true  },
   '/historias/nueva-imagen': { render: renderImageForm,      auth: true,  sidebar: true  },
   '/historias/nueva-api':  { render: renderAPIImportForm,  auth: true,  sidebar: true  },
+  '/historias/nueva-doc':  { render: renderDocImportForm,  auth: true,  sidebar: true  },
   '/flujos':               { render: renderFlujosForm,      auth: true,  sidebar: true  },
   '/config':               { render: renderConfig,        auth: true,  sidebar: true  },
 };
@@ -28,7 +29,7 @@ function parseHash() {
   const h = location.hash.replace('#', '') || '/login';
   const editMatch = h.match(/^\/historias\/([^/]+)\/editar$/);
   if (editMatch) return { path: '/historias/:id/editar', id: editMatch[1] };
-  if (h.startsWith('/historias/') && h !== '/historias/nueva' && h !== '/historias/nueva-imagen' && h !== '/historias/nueva-api') {
+  if (h.startsWith('/historias/') && h !== '/historias/nueva' && h !== '/historias/nueva-imagen' && h !== '/historias/nueva-api' && h !== '/historias/nueva-doc') {
     const id = h.replace('/historias/', '');
     return { path: '/historias/:id', id };
   }

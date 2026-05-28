@@ -140,6 +140,7 @@ export function updateBreadcrumb(path, id) {
   if (path === '/historias/nueva') { crumbs.push({ label: 'Historias', href: '#/historias' }); crumbs.push({ label: 'Nueva historia' }); }
   if (path === '/historias/nueva-imagen') { crumbs.push({ label: 'Historias', href: '#/historias' }); crumbs.push({ label: 'Desde imagen' }); }
   if (path === '/historias/nueva-api') { crumbs.push({ label: 'Historias', href: '#/historias' }); crumbs.push({ label: 'Desde API / MS' }); }
+  if (path === '/historias/nueva-doc') { crumbs.push({ label: 'Historias', href: '#/historias' }); crumbs.push({ label: 'Desde documento' }); }
   if (path === '/historias/:id' && id) { crumbs.push({ label: 'Historias', href: '#/historias' }); crumbs.push({ label: id }); }
   if (path === '/historias/:id/editar' && id) { crumbs.push({ label: 'Historias', href: '#/historias' }); crumbs.push({ label: id, href: `#/historias/${id}` }); crumbs.push({ label: 'Editar' }); }
   if (path === '/flujos') crumbs.push({ label: 'Flujos UML' });
