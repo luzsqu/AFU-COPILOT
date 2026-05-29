@@ -51,11 +51,11 @@ export function renderSidebar(currentPath) {
 
   <!-- BRAND -->
   <div class="sb-brand">
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-      <rect width="32" height="32" rx="10" fill="rgba(255,255,255,.18)"/>
-      <path d="M8 10.5h16M8 16h10M8 21.5h12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="23" cy="21.5" r="4" fill="rgba(255,255,255,.95)"/>
-      <path d="M21.5 21.5l1.2 1.2 2.3-2.3" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9" fill="#e87722"/>
+      <path d="M8 10.5h16M8 16h10M8 21.5h12" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="23" cy="21.5" r="4" fill="#fff"/>
+      <path d="M21.5 21.5l1.2 1.2 2.3-2.3" stroke="#e87722" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <div>
       <div class="sb-app-name">Analista HU</div>
