@@ -1302,7 +1302,39 @@ function bindTabEvents(h, tab) {
       document.getElementById('tab-content').innerHTML = renderTabTestCases(h);
       bindTabEvents(h, 'testcases');
     });
-    // Delegación de eventos para eliminar TCs (nuevo selector .tc-del-btn)
+
+    // Dropdown exportar TCs
+    const exportBtn  = document.getElementById('btn-export-tcs');
+    const exportMenu = document.getElementById('tc-export-menu');
+    if (exportBtn && exportMenu) {
+      exportBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const open = exportMenu.classList.toggle('tc-export-menu--open');
+        exportMenu.setAttribute('aria-hidden', String(!open));
+      });
+      exportMenu.addEventListener('click', e => {
+        const opt = e.target.closest('[data-export-fmt]');
+        if (!opt) return;
+        exportMenu.classList.remove('tc-export-menu--open');
+        exportMenu.setAttribute('aria-hidden', 'true');
+        const fmt = opt.dataset.exportFmt;
+        import('./export.js').then(m => {
+          if (fmt === 'csv')  m.exportarTCsDeHU(h);
+          if (fmt === 'md')   m.exportarTCsMd(h);
+          if (fmt === 'clip') m.copiarTCsClipboard(h);
+        });
+      });
+      // Cerrar al clic fuera
+      document.addEventListener('click', function closeMenu(e) {
+        if (!document.getElementById('tc-export-wrap')?.contains(e.target)) {
+          exportMenu.classList.remove('tc-export-menu--open');
+          exportMenu.setAttribute('aria-hidden', 'true');
+          document.removeEventListener('click', closeMenu);
+        }
+      });
+    }
+
+    // Delegación de eventos para eliminar TCs
     document.getElementById('tc-list-wrap')?.addEventListener('click', e => {
       const del = e.target.closest('[data-del-tc]');
       if (del) {
@@ -1477,7 +1509,31 @@ function renderTabTestCases(h) {
         <span class="tab-count">${tcs.length} test case${tcs.length !== 1 ? 's' : ''}</span>
         <span class="tc-coverage-hint">Clic en cada TC para ver pasos y datos de prueba</span>
       </div>
-      <button class="btn btn-accent btn-sm" id="btn-add-tc">+ Añadir manual</button>
+      <div class="tc-toolbar-actions">
+        ${tcs.length > 0 ? `
+        <div class="tc-export-wrap" id="tc-export-wrap">
+          <button class="btn btn-ghost btn-sm tc-export-btn" id="btn-export-tcs">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Exportar
+          </button>
+          <div class="tc-export-menu" id="tc-export-menu" aria-hidden="true">
+            <button class="tc-export-opt" data-export-fmt="csv">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 8h6M5 5h6M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+              CSV detallado
+            </button>
+            <button class="tc-export-opt" data-export-fmt="md">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              Markdown (.md)
+            </button>
+            <div class="tc-export-sep"></div>
+            <button class="tc-export-opt" data-export-fmt="clip">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="4" y="2" width="8" height="3" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="4" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/></svg>
+              Copiar al portapapeles
+            </button>
+          </div>
+        </div>` : ''}
+        <button class="btn btn-accent btn-sm" id="btn-add-tc">+ Añadir manual</button>
+      </div>
     </div>
     <div id="tc-list-wrap">
       ${tcs.length === 0

@@ -893,9 +893,34 @@ select.form-control   { cursor: pointer; appearance: auto; }
 .kw-y      { color: #6b7280; }
 
 /* TAB: TEST CASES — nueva UI con cards acordeón */
-.tc-toolbar-left { display: flex; align-items: center; gap: .75rem; }
+.tc-toolbar-left  { display: flex; align-items: center; gap: .75rem; }
+.tc-toolbar-actions { display: flex; align-items: center; gap: .5rem; }
 .tc-coverage-hint { font-size: .72rem; color: var(--text-muted); font-style: italic; }
 .tc-empty { text-align: center; padding: 2rem; color: var(--text-muted); font-size: .84rem; }
+
+/* Export dropdown */
+.tc-export-wrap { position: relative; }
+.tc-export-btn  { display: flex; align-items: center; gap: .35rem; }
+.tc-export-menu {
+  position: absolute; right: 0; top: calc(100% + 5px);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-md);
+  min-width: 192px; z-index: 200; padding: .25rem 0;
+  opacity: 0; pointer-events: none; transform: translateY(-4px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.tc-export-menu--open {
+  opacity: 1; pointer-events: auto; transform: translateY(0);
+}
+.tc-export-opt {
+  display: flex; align-items: center; gap: .5rem;
+  width: 100%; padding: .45rem .875rem;
+  background: none; border: none; text-align: left;
+  font-size: .8125rem; cursor: pointer; color: var(--text);
+  white-space: nowrap;
+}
+.tc-export-opt:hover { background: var(--surface-2); }
+.tc-export-sep { height: 1px; background: var(--border); margin: .25rem 0; }
 
 /* Grupos por tipo */
 .tc-grupo { margin-bottom: 1rem; }

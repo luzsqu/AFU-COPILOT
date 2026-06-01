@@ -162,3 +162,108 @@ export function exportarCSV() {
   descargar('﻿' + csv, `test-cases-istqb-${Date.now()}.csv`, 'text/csv;charset=utf-8');
   toast(`CSV descargado: ${rows.length - 1} filas`);
 }
+
+// ─── EXPORTAR TCs DE UNA SOLA HISTORIA ─────────────────────────────────────
+
+function csvCell(val) {
+  const s = String(val ?? '');
+  return (s.includes(',') || s.includes('"') || s.includes('\n'))
+    ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+/** CSV detallado: un TC por fila con precondiciones, pasos, datos y resultado */
+export function exportarTCsDeHU(h) {
+  const tcs = h.testCases || [];
+  if (!tcs.length) { toast('Sin test cases para exportar', 'warn'); return; }
+
+  const cols = [
+    'TC_ID','HU_ID','HU_Titulo',
+    'Titulo','Tipo','Prioridad','Estado',
+    'Tags','Criterio_Vinculado',
+    'Precondiciones','Pasos','Datos_Prueba','Resultado_Esperado'
+  ];
+
+  const rows = [cols, ...tcs.map(tc => [
+    tc.id,
+    h.id,
+    h.resumen,
+    tc.titulo,
+    tc.tipo,
+    tc.prioridad,
+    tc.estado,
+    (tc.tags || []).join(';'),
+    tc.criterioVinculado || '',
+    (tc.precondiciones || []).join(' | '),
+    (tc.pasos || []).map((p, i) => `${i + 1}. ${p}`).join(' | '),
+    (tc.datosPrueba || []).map(d => `${d.campo}=${d.valor}(${d.tipo || ''})`).join(' | '),
+    tc.resultadoEsperado || ''
+  ])];
+
+  const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+  descargar('﻿' + csv, `TC_${h.id}.csv`, 'text/csv;charset=utf-8');
+  toast(`${tcs.length} test cases exportados a CSV`);
+}
+
+/** Markdown completo: agrupado por tipo, con todos los detalles */
+export function tcsMd(h) {
+  const tcs = h.testCases || [];
+  let md = `# Test Cases — ${h.id}: ${h.resumen}\n\n`;
+  md += `> **Proyecto:** ${h.proyectoId || '—'} | **Fecha:** ${new Date().toLocaleDateString('es-ES')} | **Total TCs:** ${tcs.length}\n\n---\n\n`;
+
+  const byTipo = {};
+  tcs.forEach(tc => {
+    const t = tc.tipo || 'Funcional';
+    (byTipo[t] = byTipo[t] || []).push(tc);
+  });
+
+  Object.entries(byTipo).forEach(([tipo, items]) => {
+    md += `## ${tipo} (${items.length})\n\n`;
+    items.forEach(tc => {
+      md += `### ${tc.id} — ${tc.titulo}\n\n`;
+      md += `**Tipo:** ${tc.tipo} | **Prioridad:** ${tc.prioridad} | **Estado:** ${tc.estado}`;
+      if (tc.criterioVinculado) md += ` | **Criterio:** ${tc.criterioVinculado}`;
+      if (tc.tags?.length) md += ` | **Tags:** \`${tc.tags.join('` `')}\``;
+      md += '\n\n';
+
+      if (tc.precondiciones?.length) {
+        md += `**Precondiciones:**\n`;
+        tc.precondiciones.forEach(p => { md += `- ${p}\n`; });
+        md += '\n';
+      }
+
+      if (tc.pasos?.length) {
+        md += `**Pasos de ejecución:**\n`;
+        tc.pasos.forEach((p, i) => { md += `${i + 1}. ${p}\n`; });
+        md += '\n';
+      }
+
+      if (tc.datosPrueba?.length) {
+        md += `**Datos de prueba:**\n\n| Campo | Valor | Tipo |\n|---|---|---|\n`;
+        tc.datosPrueba.forEach(d => { md += `| ${d.campo} | \`${d.valor}\` | ${d.tipo || '—'} |\n`; });
+        md += '\n';
+      }
+
+      if (tc.resultadoEsperado) {
+        md += `**Resultado esperado:**\n> ${tc.resultadoEsperado}\n\n`;
+      }
+
+      md += '---\n\n';
+    });
+  });
+  return md;
+}
+
+export function exportarTCsMd(h) {
+  const tcs = h.testCases || [];
+  if (!tcs.length) { toast('Sin test cases para exportar', 'warn'); return; }
+  descargar(tcsMd(h), `TC_${h.id}.md`);
+  toast(`${tcs.length} test cases exportados a Markdown`);
+}
+
+export function copiarTCsClipboard(h) {
+  const tcs = h.testCases || [];
+  if (!tcs.length) { toast('Sin test cases para copiar', 'warn'); return; }
+  navigator.clipboard.writeText(tcsMd(h))
+    .then(() => toast(`${tcs.length} test cases copiados al portapapeles ✓`))
+    .catch(() => toast('No se pudo copiar — intentá desde HTTPS', 'warn'));
+}
