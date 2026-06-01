@@ -3,9 +3,11 @@ import { guardar } from './storage.js';
 import { navigate } from './router.js';
 import { toast } from './toast.js';
 import { esc, formatDate, showFieldError, clearFieldError } from './utils.js';
+import { TEMPLATES, getTemplate } from './templates.js';
 
 let _ctxProjId = null;
-let _editingProjId = null;
+let _editingProjId     = null;
+let _selectedTemplateId = '';
 
 const PROJ_COLORS = [
   '#e87722', '#7c3aed', '#059669', '#2563eb',
@@ -55,12 +57,33 @@ export function renderProjects() {
 </div>
 
 <div class="modal-overlay hidden" id="modal-project">
-  <div class="modal-box">
+  <div class="modal-box modal-box-lg">
     <div class="modal-header">
       <h3 id="modal-project-title">Nuevo proyecto</h3>
       <button class="modal-close" id="btn-close-modal-project">✕</button>
     </div>
     <div class="modal-body">
+
+      <!-- SELECTOR DE TEMPLATE (solo en modo creación) -->
+      <div id="template-selector-wrap">
+        <div class="template-selector-label">
+          <span>Comenzar desde un template</span>
+          <span class="template-selector-hint">Precarga el contexto IA con reglas de negocio del dominio</span>
+        </div>
+        <div class="template-grid">
+          ${TEMPLATES.map(t => `
+          <button type="button" class="template-card" data-tpl-id="${t.id}" style="--tpl-color:${t.color}">
+            <span class="template-emoji">${t.emoji}</span>
+            <span class="template-name">${esc(t.nombre)}</span>
+          </button>`).join('')}
+          <button type="button" class="template-card template-card-blank" data-tpl-id="">
+            <span class="template-emoji">⬜</span>
+            <span class="template-name">En blanco</span>
+          </button>
+        </div>
+        <div id="template-preview" class="template-preview hidden"></div>
+      </div>
+
       <form id="form-project" novalidate>
         <div class="form-group">
           <label class="form-label" for="proj-nombre">Nombre *</label>
@@ -94,6 +117,34 @@ export function renderProjects() {
   document.getElementById('btn-close-modal-project').addEventListener('click', closeModal);
   document.getElementById('btn-cancel-project').addEventListener('click', closeModal);
   document.getElementById('form-project').addEventListener('submit', crearProyecto);
+
+  // ── Template selector ──────────────────────────────────────────────────────
+  document.querySelectorAll('.template-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      _selectedTemplateId = card.dataset.tplId || '';
+      const tpl = getTemplate(_selectedTemplateId);
+      const preview = document.getElementById('template-preview');
+      if (tpl) {
+        preview.classList.remove('hidden');
+        preview.innerHTML = `
+          <div class="tpl-preview-header" style="border-left-color:${tpl.color}">
+            <strong>${tpl.emoji} ${esc(tpl.nombre)}</strong>
+            <span>${esc(tpl.descripcion)}</span>
+          </div>
+          <div class="tpl-preview-tags">${tpl.tags.map(t => `<span class="badge badge-tag">${esc(t)}</span>`).join('')}</div>
+          <p class="tpl-preview-note">✓ El contexto IA se cargará automáticamente al crear el proyecto</p>`;
+        // Pre-fill descripción si está vacía
+        const desc = document.getElementById('proj-desc');
+        if (desc && !desc.value.trim()) desc.value = tpl.descripcion;
+      } else {
+        preview.classList.add('hidden');
+        preview.innerHTML = '';
+      }
+    });
+  });
+
   // Feedback de validación en el campo nombre del proyecto
   const nombreInput = document.getElementById('proj-nombre');
   nombreInput?.addEventListener('blur', () => {
@@ -152,10 +203,19 @@ function renderProjectCard(p, color) {
 }
 
 function openModal(editId) {
-  _editingProjId = editId || null;
+  _editingProjId      = editId || null;
+  _selectedTemplateId = '';
   const titleEl   = document.getElementById('modal-project-title');
   const submitBtn = document.querySelector('#form-project [type="submit"]');
   document.getElementById('form-project').reset();
+
+  // Ocultar/mostrar template selector según modo
+  const tplWrap = document.getElementById('template-selector-wrap');
+  if (tplWrap) tplWrap.style.display = _editingProjId ? 'none' : '';
+
+  // Resetear selección de template
+  document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('template-preview')?.classList.add('hidden');
 
   if (_editingProjId) {
     const proj = state.proyectos.find(p => p.id === _editingProjId);
@@ -175,7 +235,8 @@ function openModal(editId) {
 }
 
 function closeModal() {
-  _editingProjId = null;
+  _editingProjId      = null;
+  _selectedTemplateId = '';
   document.getElementById('modal-project').classList.add('hidden');
   document.getElementById('form-project').reset();
 }
@@ -205,18 +266,29 @@ function crearProyecto(e) {
     return;
   }
 
+  // Aplicar template seleccionado como contexto IA
+  const tpl = getTemplate(_selectedTemplateId);
+  const contextoInicial = tpl
+    ? [{ id: Date.now().toString(36), nombre: `Template: ${tpl.nombre}`, texto: tpl.contexto, creadoEn: new Date().toISOString() }]
+    : [];
+
   const proj = {
     id: 'proj-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
     nombre,
-    descripcion: document.getElementById('proj-desc').value.trim(),
+    descripcion: document.getElementById('proj-desc').value.trim() || (tpl?.descripcion || ''),
     jiraKey: document.getElementById('proj-key').value.trim().toUpperCase(),
     jiraUrl: document.getElementById('proj-url').value.trim(),
     creado: new Date().toISOString(),
-    contexto: []
+    templateId: tpl?.id || null,
+    contexto: contextoInicial
   };
   state.proyectos.push(proj);
   guardar();
   closeModal();
+  const msg = tpl
+    ? `Proyecto creado con template ${tpl.emoji} ${tpl.nombre}`
+    : 'Proyecto creado';
+  toast(msg);
   activarProyecto(proj.id);
 }
 
