@@ -1,7 +1,7 @@
 import { state, JIRA_TIPOS, JIRA_PRIORIDADES } from './state.js';
 import { esc, formatDate } from './utils.js';
 import { guardar } from './storage.js';
-import { generarCriterios } from './gherkin.js';
+import { generarCriterios, generarCriteriosConIA, puedeCriteriosConIA } from './gherkin.js';
 import { generarTestCases, TC_ESTADOS, TC_TIPOS_LIST, TC_PRIORIDADES, mkTestCase } from './testcases.js';
 import { crearHistoriaData, crearHistoriasDesdeIA, eliminarHistoriaById, duplicarHistoria, actualizarHistoria } from './historias.js';
 import { toast, toastAction } from './toast.js';
@@ -1283,8 +1283,22 @@ function renderTab(h, tab) {
 
 function bindTabEvents(h, tab) {
   if (tab === 'criterios') {
-    document.getElementById('btn-regen-criterios')?.addEventListener('click', () => {
-      h.criterios = generarCriterios(h);
+    document.getElementById('btn-regen-criterios')?.addEventListener('click', async () => {
+      const btn = document.getElementById('btn-regen-criterios');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Generando…'; }
+
+      try {
+        if (puedeCriteriosConIA()) {
+          h.criterios = await generarCriteriosConIA(h);
+        } else {
+          h.criterios = generarCriterios(h);
+        }
+      } catch (err) {
+        console.error('Error generando criterios con IA, usando fallback local:', err);
+        h.criterios = generarCriterios(h);
+        toast('IA no disponible — criterios generados localmente', 'warn');
+      }
+
       // Test cases se regeneran independientemente — NO son una derivación de los criterios
       h.testCases = generarTestCases(h);
       actualizarHistoria(h.id, { criterios: h.criterios, testCases: h.testCases });
@@ -1418,10 +1432,20 @@ function renderTabCriterios(h) {
   const TIPO_CLASSES = { positivo:'gb-pos', negativo:'gb-neg', boundary:'gb-bnd', nf:'gb-nf', condicional:'gb-cnd' };
   const TIPO_LABELS  = { positivo:'POSITIVO', negativo:'NEGATIVO', boundary:'BOUNDARY', nf:'NO FUNCIONAL', condicional:'CONDICIONAL' };
 
+  const usaIA = puedeCriteriosConIA();
   return `<div class="tab-criterios">
     <div class="tab-toolbar">
-      <span class="tab-count">${crits.length} criterio${crits.length !== 1 ? 's' : ''} de aceptación</span>
-      <button class="btn btn-ghost btn-sm" id="btn-regen-criterios">↺ Regenerar</button>
+      <div class="criterios-toolbar-left">
+        <span class="tab-count">${crits.length} criterio${crits.length !== 1 ? 's' : ''} de aceptación</span>
+        ${usaIA ? `<span class="criterios-ia-badge">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Contexto IA activo
+        </span>` : ''}
+      </div>
+      <button class="btn btn-ghost btn-sm ${usaIA ? 'btn-ia' : ''}" id="btn-regen-criterios" title="${usaIA ? 'Regenerar con IA usando el contexto del proyecto' : 'Regenerar criterios'}">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 1 1 1.5 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2 13V8h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ${usaIA ? 'Regenerar con IA' : 'Regenerar'}
+      </button>
     </div>
     ${crits.map(c => `
       <div class="gherkin-block">

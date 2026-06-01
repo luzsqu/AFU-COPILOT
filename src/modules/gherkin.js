@@ -1,4 +1,5 @@
 import { esc } from './utils.js';
+import { state } from './state.js';
 
 const KW_MAP = {
   autenticacion: ['login','autenti','password','contraseña','iniciar sesión','iniciar sesion','sign in'],
@@ -151,4 +152,109 @@ export function generarCriterios(h) {
   ]));
 
   return c;
+}
+
+// ─── GENERACIÓN DE CRITERIOS CON IA + CONTEXTO DEL PROYECTO ─────────────────
+
+const PROMPT_CRITERIOS = (h, contexto) => `Eres un analista QA certificado ISTQB Foundation Level.
+Genera criterios de aceptación en formato Gherkin para la siguiente historia de usuario.
+
+HISTORIA DE USUARIO:
+- ID: ${h.id}
+- Como: ${h.como}
+- Quiero: ${h.quiero}
+- Para: ${h.para}
+${h.descripcion ? `- Descripción: ${h.descripcion}` : ''}
+${contexto}
+
+INSTRUCCIONES:
+Genera entre 4 y 7 escenarios Gherkin siguiendo ISTQB Foundation Level.
+Incluye SIEMPRE: E1 (positivo/happy path), E2 (negativo/datos inválidos), E3 (boundary/límites) y E-NF (no funcional).
+Agrega escenarios adicionales solo si el contexto del negocio los justifica.
+Usa el contexto del proyecto para que los escenarios reflejen las reglas de negocio reales.
+
+Responde ÚNICAMENTE con un array JSON válido, sin texto ni markdown extra:
+[{
+  "id": "E1",
+  "tipo": "positivo",
+  "titulo": "Título del escenario",
+  "pasos": [
+    {"kw": "Escenario", "texto": "descripción corta"},
+    {"kw": "Dado", "texto": "condición previa"},
+    {"kw": "Y", "texto": "otra condición (opcional)"},
+    {"kw": "Cuando", "texto": "acción del usuario"},
+    {"kw": "Entonces", "texto": "resultado esperado"},
+    {"kw": "Y", "texto": "resultado adicional (opcional)"}
+  ]
+}]`;
+
+const API_URLS_GHERKIN = {
+  openai:    '/proxy/openai/v1/chat/completions',
+  claude:    '/proxy/anthropic/v1/messages',
+  groq:      '/proxy/groq/openai/v1/chat/completions',
+  grok:      '/proxy/grok/v1/chat/completions',
+};
+
+/** Verifica si la generación con IA está disponible para criterios */
+export function puedeCriteriosConIA() {
+  const cfg  = state.apiCfg;
+  const proj = state.proyectos.find(p => p.id === state.proyectoActivoId);
+  return !!(cfg?.key && proj?.contexto?.length);
+}
+
+/** Genera criterios Gherkin usando IA + contexto del proyecto.
+ *  Devuelve array con el mismo formato que generarCriterios().
+ *  Lanza error si la llamada falla (el caller debe manejar el fallback). */
+export async function generarCriteriosConIA(h) {
+  const cfg  = state.apiCfg;
+  const proj = state.proyectos.find(p => p.id === state.proyectoActivoId);
+  if (!cfg?.key || !proj?.contexto?.length) throw new Error('Sin API key o sin contexto de proyecto');
+
+  const ctxTexto = proj.contexto.map(c => `=== ${c.nombre} ===\n${c.texto}`).join('\n\n');
+  const contextoBloque = `\nCONTEXTO DEL PROYECTO (úsalo para alinear los escenarios al negocio real):\n${ctxTexto}`;
+  const prompt = PROMPT_CRITERIOS(h, contextoBloque);
+
+  let rawText;
+
+  if (cfg.provider === 'claude') {
+    const res = await fetch('/proxy/anthropic/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': cfg.key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: cfg.model || 'claude-3-5-sonnet-20241022',
+        max_tokens: 3000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `Error Claude ${res.status}`);
+    rawText = data.content[0].text;
+  } else {
+    const url = API_URLS_GHERKIN[cfg.provider] || `/proxy/${cfg.provider}/v1/chat/completions`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` },
+      body: JSON.stringify({
+        model: cfg.model,
+        max_tokens: 3000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `Error API ${res.status}`);
+    rawText = data.choices[0].message.content;
+  }
+
+  // Parsear JSON — limpiar posibles bloques markdown
+  const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) throw new Error('La IA no devolvió un JSON válido');
+  const parsed = JSON.parse(jsonMatch[0]);
+
+  // Validar y normalizar estructura
+  return parsed.map((sc, i) => ({
+    id:     sc.id    || `E${i + 1}`,
+    tipo:   sc.tipo  || 'positivo',
+    titulo: sc.titulo || `Escenario ${i + 1}`,
+    pasos:  Array.isArray(sc.pasos) ? sc.pasos : []
+  }));
 }
