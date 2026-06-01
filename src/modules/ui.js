@@ -1334,9 +1334,11 @@ function bindTabEvents(h, tab) {
       });
     }
 
-    // Delegación de eventos para eliminar TCs
+    // Delegación: eliminar TC o abrir drawer
     document.getElementById('tc-list-wrap')?.addEventListener('click', e => {
-      const del = e.target.closest('[data-del-tc]');
+      const del  = e.target.closest('[data-del-tc]');
+      const card = e.target.closest('.tc-card-clickable');
+
       if (del) {
         e.stopPropagation();
         e.preventDefault();
@@ -1345,7 +1347,22 @@ function bindTabEvents(h, tab) {
         actualizarHistoria(h.id, { testCases: h.testCases });
         document.getElementById('tab-content').innerHTML = renderTabTestCases(h);
         bindTabEvents(h, 'testcases');
+      } else if (card) {
+        const idx = Number(card.dataset.tcIdx);
+        const tc  = (h.testCases || [])[idx];
+        if (tc) abrirDrawerTC(tc, h, h.testCases || []);
       }
+    });
+
+    // Teclado: Enter/Space en tarjeta también abre el drawer
+    document.getElementById('tc-list-wrap')?.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest('.tc-card-clickable');
+      if (!card) return;
+      e.preventDefault();
+      const idx = Number(card.dataset.tcIdx);
+      const tc  = (h.testCases || [])[idx];
+      if (tc) abrirDrawerTC(tc, h, h.testCases || []);
     });
   }
   if (tab === 'jira') {
@@ -1463,8 +1480,8 @@ function renderTabTestCases(h) {
         ).join('');
 
         return `
-        <details class="tc-card" data-tc-idx="${tc._i}">
-          <summary class="tc-card-summary">
+        <div class="tc-card tc-card-clickable" data-tc-idx="${tc._i}" role="button" tabindex="0" title="Ver detalle completo">
+          <div class="tc-card-summary">
             <div class="tc-card-left">
               <span class="tc-id">${esc(tc.id)}</span>
               <span class="tc-card-titulo">${esc(tc.titulo)}</span>
@@ -1474,32 +1491,11 @@ function renderTabTestCases(h) {
               <span class="badge ${ESTADO_CLASS[tc.estado] || ''}">${esc(tc.estado)}</span>
               ${tc.criterioVinculado ? `<span class="badge badge-tag">${esc(tc.criterioVinculado)}</span>` : ''}
               <span class="tc-prio-dot ${PRIO_CLASS[tc.prioridad] || ''}" title="Prioridad: ${esc(tc.prioridad)}"></span>
+              <svg class="tc-card-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <button class="btn-icon btn-icon-del tc-del-btn" data-del-tc="${tc._i}" title="Eliminar" type="button">✕</button>
             </div>
-          </summary>
-          <div class="tc-card-body">
-            ${preList ? `
-            <div class="tc-section">
-              <div class="tc-section-label">📋 Precondiciones</div>
-              <ul class="tc-list tc-pre-list">${preList}</ul>
-            </div>` : ''}
-            ${pasosList ? `
-            <div class="tc-section">
-              <div class="tc-section-label">▶ Pasos de ejecución</div>
-              <ol class="tc-list tc-pasos-list">${pasosList}</ol>
-            </div>` : ''}
-            ${datosRows ? `
-            <div class="tc-section">
-              <div class="tc-section-label">🗂 Datos de prueba</div>
-              <table class="tc-dp-table"><thead><tr><th>Campo</th><th>Valor</th><th>Tipo</th></tr></thead><tbody>${datosRows}</tbody></table>
-            </div>` : ''}
-            ${tc.resultadoEsperado ? `
-            <div class="tc-section">
-              <div class="tc-section-label">✅ Resultado esperado</div>
-              <div class="tc-resultado">${esc(tc.resultadoEsperado)}</div>
-            </div>` : ''}
           </div>
-        </details>`;
+        </div>`;
       }).join('')}
     </div>`).join('');
 
@@ -1507,7 +1503,7 @@ function renderTabTestCases(h) {
     <div class="tab-toolbar">
       <div class="tc-toolbar-left">
         <span class="tab-count">${tcs.length} test case${tcs.length !== 1 ? 's' : ''}</span>
-        <span class="tc-coverage-hint">Clic en cada TC para ver pasos y datos de prueba</span>
+        <span class="tc-coverage-hint">Clic en un TC para ver sus detalles</span>
       </div>
       <div class="tc-toolbar-actions">
         ${tcs.length > 0 ? `
@@ -1541,6 +1537,127 @@ function renderTabTestCases(h) {
         : grupos}
     </div>
   </div>`;
+}
+
+// ─── TC DRAWER ───────────────────────────────────────────────────────────────
+
+const DRAWER_TAG_LABEL = { smoke:'Smoke', regression:'Regresión', integration:'Integración', end_to_end:'E2E', security:'Seguridad', performance:'Performance', ui:'UI', api:'API' };
+const DRAWER_TAG_CLASS = { smoke:'tc-tag-smoke', regression:'tc-tag-reg', integration:'tc-tag-integ', end_to_end:'tc-tag-e2e', security:'tc-tag-sec', performance:'tc-tag-perf', ui:'tc-tag-ui', api:'tc-tag-api' };
+const DRAWER_PRIO_CLASS = { 'Alta':'tc-prio-alta', 'Media':'tc-prio-media', 'Baja':'tc-prio-baja' };
+
+function abrirDrawerTC(tc, h, allTcs) {
+  cerrarDrawerTC();
+
+  const tags = (tc.tags || []).map(t =>
+    `<span class="tc-tag-pill ${DRAWER_TAG_CLASS[t] || ''}">${DRAWER_TAG_LABEL[t] || esc(t)}</span>`
+  ).join('');
+
+  const preList = (tc.precondiciones || []).map(p => `<li>${esc(p)}</li>`).join('');
+  const pasosList = (tc.pasos || []).map((p, i) =>
+    `<li><span class="tc-paso-num">${i + 1}</span><span>${esc(p)}</span></li>`
+  ).join('');
+  const datosRows = (tc.datosPrueba || []).map(d =>
+    `<tr>
+      <td class="tc-dp-campo">${esc(d.campo)}</td>
+      <td class="tc-dp-valor"><code>${esc(d.valor)}</code></td>
+      <td><span class="tc-dp-tipo tc-dp-${d.tipo?.includes('inválido')||d.tipo?.includes('invalid')?'neg':'pos'}">${esc(d.tipo||'')}</span></td>
+    </tr>`
+  ).join('');
+
+  // Navegación prev/next
+  const idx = allTcs.findIndex(t => t.id === tc.id);
+  const hasPrev = idx > 0;
+  const hasNext = idx < allTcs.length - 1;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'tc-drawer-overlay';
+  overlay.className = 'tc-drawer-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', `Detalle: ${tc.titulo}`);
+  overlay.innerHTML = `
+    <div class="tc-drawer-backdrop" id="tc-drawer-backdrop"></div>
+    <div class="tc-drawer" id="tc-drawer">
+
+      <div class="tc-drawer-header">
+        <div class="tc-drawer-header-top">
+          <span class="tc-id tc-drawer-id">${esc(tc.id)}</span>
+          <div class="tc-drawer-nav">
+            <button class="tc-drawer-nav-btn" id="btn-tc-prev" ${!hasPrev ? 'disabled' : ''} title="TC anterior">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <span class="tc-drawer-nav-pos">${idx + 1} / ${allTcs.length}</span>
+            <button class="tc-drawer-nav-btn" id="btn-tc-next" ${!hasNext ? 'disabled' : ''} title="TC siguiente">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <button class="tc-drawer-close" id="btn-tc-drawer-close" aria-label="Cerrar">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <h2 class="tc-drawer-titulo">${esc(tc.titulo)}</h2>
+        <div class="tc-drawer-meta">
+          <span class="tc-drawer-meta-chip">${esc(tc.tipo || '—')}</span>
+          <span class="tc-drawer-meta-sep">·</span>
+          <span class="tc-drawer-meta-chip">
+            <span class="tc-prio-dot ${DRAWER_PRIO_CLASS[tc.prioridad] || ''}"></span>
+            ${esc(tc.prioridad || '—')}
+          </span>
+          <span class="tc-drawer-meta-sep">·</span>
+          <span class="badge ${ESTADO_CLASS[tc.estado] || ''}">${esc(tc.estado || '—')}</span>
+          ${tc.criterioVinculado ? `<span class="tc-drawer-meta-sep">·</span><span class="badge badge-tag">Criterio: ${esc(tc.criterioVinculado)}</span>` : ''}
+        </div>
+        ${tags ? `<div class="tc-drawer-tags">${tags}</div>` : ''}
+      </div>
+
+      <div class="tc-drawer-body">
+        ${preList ? `
+        <div class="tc-section">
+          <div class="tc-section-label">📋 Precondiciones</div>
+          <ul class="tc-list tc-pre-list">${preList}</ul>
+        </div>` : ''}
+
+        ${pasosList ? `
+        <div class="tc-section">
+          <div class="tc-section-label">▶ Pasos de ejecución</div>
+          <ol class="tc-list tc-pasos-list tc-pasos-drawer">${pasosList}</ol>
+        </div>` : ''}
+
+        ${datosRows ? `
+        <div class="tc-section">
+          <div class="tc-section-label">🗂 Datos de prueba</div>
+          <table class="tc-dp-table">
+            <thead><tr><th>Campo</th><th>Valor</th><th>Tipo</th></tr></thead>
+            <tbody>${datosRows}</tbody>
+          </table>
+        </div>` : ''}
+
+        ${tc.resultadoEsperado ? `
+        <div class="tc-section">
+          <div class="tc-section-label">✅ Resultado esperado</div>
+          <div class="tc-resultado">${esc(tc.resultadoEsperado)}</div>
+        </div>` : ''}
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  // Forzar reflow para activar la animación
+  requestAnimationFrame(() => overlay.classList.add('tc-drawer-overlay--open'));
+
+  document.getElementById('btn-tc-drawer-close').onclick = cerrarDrawerTC;
+  document.getElementById('tc-drawer-backdrop').onclick = cerrarDrawerTC;
+  if (hasPrev) document.getElementById('btn-tc-prev').onclick = () => abrirDrawerTC(allTcs[idx - 1], h, allTcs);
+  if (hasNext) document.getElementById('btn-tc-next').onclick = () => abrirDrawerTC(allTcs[idx + 1], h, allTcs);
+
+  const onKey = e => { if (e.key === 'Escape') { cerrarDrawerTC(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
+}
+
+function cerrarDrawerTC() {
+  const overlay = document.getElementById('tc-drawer-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('tc-drawer-overlay--open');
+  overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
 }
 
 function renderTabMockups(h) {
