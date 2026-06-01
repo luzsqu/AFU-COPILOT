@@ -1,5 +1,5 @@
 import { state, JIRA_TIPOS, JIRA_PRIORIDADES } from './state.js';
-import { esc, formatDate } from './utils.js';
+import { esc, formatDate, showFieldError, clearFieldError, validateRequired } from './utils.js';
 import { guardar } from './storage.js';
 import { generarCriterios, generarCriteriosConIA, puedeCriteriosConIA } from './gherkin.js';
 import { generarTestCases, TC_ESTADOS, TC_TIPOS_LIST, TC_PRIORIDADES, mkTestCase } from './testcases.js';
@@ -996,20 +996,52 @@ function setupFormValidation() {
   const btn     = document.getElementById('btn-crear-hu');
   const counter = document.getElementById('char-count');
 
+  const REQUIRED = [
+    { el: resumen, msg: 'El resumen es requerido (máx. 255 caracteres)' },
+    { el: como,    msg: 'Indicá el rol del usuario (ej: usuario registrado)' },
+    { el: quiero,  msg: 'Indicá la acción que desea realizar' },
+    { el: para,    msg: 'Indicá el objetivo o beneficio' },
+  ];
+
   function validate() {
-    const ok = resumen.value.trim() && como.value.trim() && quiero.value.trim() && para.value.trim();
+    const ok = REQUIRED.every(({ el }) => el.value.trim());
     btn.disabled = !ok;
-    counter.textContent = `${resumen.value.length} / 255`;
+    // Actualizar contador con color según longitud
+    const len = resumen.value.length;
+    counter.textContent = `${len} / 255`;
+    counter.style.color = len > 220 ? (len > 250 ? '#dc2626' : '#d97706') : '';
+    return ok;
   }
 
-  [resumen, como, quiero, para].forEach(el => el.addEventListener('input', validate));
-  resumen.addEventListener('input', validate);
+  // Feedback on blur: mostrar error si el campo quedó vacío
+  REQUIRED.forEach(({ el, msg }) => {
+    el.addEventListener('blur', () => {
+      if (!el.value.trim()) showFieldError(el, msg);
+    });
+    el.addEventListener('input', () => {
+      if (el.value.trim()) clearFieldError(el);
+      validate();
+    });
+  });
+
+  // Validación del resumen: longitud máxima con feedback
+  resumen.addEventListener('input', () => {
+    if (resumen.value.length > 255) {
+      showFieldError(resumen, 'El resumen no puede superar 255 caracteres');
+    }
+  });
 
   document.getElementById('form-hu').addEventListener('submit', e => {
     e.preventDefault();
+
+    // Doble validación por seguridad — shake en campos vacíos
+    if (!validateRequired(REQUIRED)) {
+      toast('Completá los campos requeridos antes de continuar', 'warn');
+      return;
+    }
+
     const tagsRaw = document.getElementById('tag-input').dataset.tags;
     const etiquetas = tagsRaw ? JSON.parse(tagsRaw) : [];
-
     const links = [...document.querySelectorAll('.link-row')].map(row => ({
       tipo: row.querySelector('.link-tipo').value,
       url:  row.querySelector('.link-url').value.trim(),

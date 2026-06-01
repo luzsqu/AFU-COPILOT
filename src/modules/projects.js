@@ -2,7 +2,7 @@ import { state, PROYECTOS_DEFAULT } from './state.js';
 import { guardar } from './storage.js';
 import { navigate } from './router.js';
 import { toast } from './toast.js';
-import { esc, formatDate } from './utils.js';
+import { esc, formatDate, showFieldError, clearFieldError } from './utils.js';
 
 let _ctxProjId = null;
 let _editingProjId = null;
@@ -94,6 +94,14 @@ export function renderProjects() {
   document.getElementById('btn-close-modal-project').addEventListener('click', closeModal);
   document.getElementById('btn-cancel-project').addEventListener('click', closeModal);
   document.getElementById('form-project').addEventListener('submit', crearProyecto);
+  // Feedback de validación en el campo nombre del proyecto
+  const nombreInput = document.getElementById('proj-nombre');
+  nombreInput?.addEventListener('blur', () => {
+    if (!nombreInput.value.trim()) showFieldError(nombreInput, 'El nombre del proyecto es requerido');
+  });
+  nombreInput?.addEventListener('input', () => {
+    if (nombreInput.value.trim()) clearFieldError(nombreInput);
+  });
   document.getElementById('btn-close-ctx-modal').addEventListener('click', () => {
     document.getElementById('modal-context').classList.add('hidden');
   });
@@ -174,8 +182,14 @@ function closeModal() {
 
 function crearProyecto(e) {
   e.preventDefault();
-  const nombre = document.getElementById('proj-nombre').value.trim();
-  if (!nombre) { toast('Ingresa un nombre para el proyecto', 'warn'); return; }
+  const nombreEl = document.getElementById('proj-nombre');
+  const nombre   = nombreEl.value.trim();
+  if (!nombre) {
+    showFieldError(nombreEl, 'El nombre del proyecto es requerido');
+    nombreEl.focus();
+    return;
+  }
+  clearFieldError(nombreEl);
 
   if (_editingProjId) {
     const proj = state.proyectos.find(p => p.id === _editingProjId);

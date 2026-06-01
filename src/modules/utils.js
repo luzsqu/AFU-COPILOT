@@ -36,3 +36,58 @@ export function formatDate(iso) {
   if (!iso) return '';
   return new Date(iso).toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
 }
+
+// ─── FORM VALIDATION HELPERS ─────────────────────────────────────────────────
+
+/**
+ * Muestra error visual en un campo: borde rojo, shake y mensaje debajo.
+ * @param {HTMLElement} field  – el input/textarea/select
+ * @param {string}      msg   – mensaje de error (opcional)
+ */
+export function showFieldError(field, msg = 'Este campo es requerido') {
+  if (!field) return;
+  field.classList.add('field-invalid');
+  // Eliminar error anterior si existe
+  const prev = field.parentElement.querySelector('.form-error-msg');
+  if (prev) prev.remove();
+  if (msg) {
+    const err = document.createElement('div');
+    err.className = 'form-error-msg';
+    err.textContent = msg;
+    err.id = `err-${field.id}`;
+    field.insertAdjacentElement('afterend', err);
+  }
+  // Re-trigger shake si ya estaba marcado
+  field.style.animation = 'none';
+  void field.offsetWidth; // reflow
+  field.style.animation = '';
+}
+
+/**
+ * Limpia el estado de error de un campo.
+ */
+export function clearFieldError(field) {
+  if (!field) return;
+  field.classList.remove('field-invalid');
+  const err = field.parentElement?.querySelector('.form-error-msg');
+  if (err) err.remove();
+}
+
+/**
+ * Valida un array de campos requeridos mostrando error en los vacíos.
+ * Devuelve true si todos son válidos.
+ */
+export function validateRequired(fields) {
+  let valid = true;
+  fields.forEach(({ el, msg }) => {
+    if (!el) return;
+    const val = el.value?.trim();
+    if (!val) {
+      showFieldError(el, msg);
+      valid = false;
+    } else {
+      clearFieldError(el);
+    }
+  });
+  return valid;
+}

@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { guardar } from './storage.js';
 import { navigate } from './router.js';
 import { toast } from './toast.js';
-import { esc } from './utils.js';
+import { esc, showFieldError, clearFieldError } from './utils.js';
 
 function hash(s) { return btoa(unescape(encodeURIComponent(s))); }
 
@@ -92,18 +92,35 @@ export function renderLogin() {
     input.type = input.type === 'password' ? 'text' : 'password';
   });
 
+  // Feedback inmediato en blur
+  const userEl = document.getElementById('auth-user');
+  const passEl = document.getElementById('auth-pass');
+
+  userEl?.addEventListener('blur',  () => { if (!userEl.value.trim()) showFieldError(userEl, 'Ingresá tu usuario'); });
+  userEl?.addEventListener('input', () => { if (userEl.value.trim())  clearFieldError(userEl); hideAuthError(); });
+  passEl?.addEventListener('blur',  () => { if (!passEl.value)        showFieldError(passEl, 'Ingresá tu contraseña'); });
+  passEl?.addEventListener('input', () => { if (passEl.value)         clearFieldError(passEl); hideAuthError(); });
+
   document.getElementById('form-auth').addEventListener('submit', e => {
     e.preventDefault();
-    const user = document.getElementById('auth-user').value.trim();
-    const pass = document.getElementById('auth-pass').value;
-    if (!user || !pass) { showAuthError('Completa todos los campos'); return; }
+    const user = userEl.value.trim();
+    const pass = passEl.value;
+
+    // Mostrar errores en campos vacíos
+    let hasError = false;
+    if (!user) { showFieldError(userEl, 'Ingresá tu usuario');    hasError = true; }
+    if (!pass) { showFieldError(passEl, 'Ingresá tu contraseña'); hasError = true; }
+    if (hasError) return;
+
     if (!hasCuenta) {
       state.usuario = { username: user, passwordHash: hash(pass) };
       guardar();
       navigate('/projects');
     } else {
       if (state.usuario.username !== user || state.usuario.passwordHash !== hash(pass)) {
+        showFieldError(passEl, 'Usuario o contraseña incorrectos');
         showAuthError('Usuario o contraseña incorrectos');
+        passEl.focus();
         return;
       }
       navigate(state.proyectoActivoId ? '/dashboard' : '/projects');
@@ -125,6 +142,10 @@ function showAuthError(msg) {
   const el = document.getElementById('auth-error');
   el.textContent = msg;
   el.classList.remove('hidden');
+}
+
+function hideAuthError() {
+  document.getElementById('auth-error')?.classList.add('hidden');
 }
 
 export function logout() {
