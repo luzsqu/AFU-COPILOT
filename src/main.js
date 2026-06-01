@@ -33,11 +33,37 @@ document.addEventListener('DOMContentLoaded', () => {
   initRouter();
 });
 
+// ── MODAL HELPERS ─────────────────────────────────────────────────────────────
+
+/** Cierra un modal con animación de salida suave */
+export function closeModal(overlay) {
+  if (!overlay || overlay.classList.contains('hidden')) return;
+  overlay.classList.add('modal-closing');
+  const box = overlay.querySelector('.modal-box, .palette-box');
+  if (box) box.classList.add('modal-box-closing');
+  const cleanup = () => {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('modal-closing');
+    if (box) box.classList.remove('modal-box-closing');
+  };
+  overlay.addEventListener('animationend', cleanup, { once: true });
+  setTimeout(cleanup, 250); // fallback
+}
+
 // ── GLOBAL KEYDOWN HELPERS ───────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
+    document.querySelectorAll('.modal-overlay:not(.hidden), .palette-overlay:not(.hidden)')
+      .forEach(m => closeModal(m));
   }
+});
+
+// ── BACKDROP CLICK — cierra modales al clic fuera del contenido ──────────────
+document.addEventListener('click', e => {
+  // Solo si el clic es exactamente en el overlay (no en su contenido)
+  if (!e.target.classList.contains('modal-overlay') &&
+      !e.target.classList.contains('palette-overlay')) return;
+  closeModal(e.target);
 });
 
 // ── EXPOSE FOR INLINE HTML HANDLERS ──────────────────────────────────────────
