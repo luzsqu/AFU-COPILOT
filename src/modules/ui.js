@@ -1285,11 +1285,12 @@ function bindTabEvents(h, tab) {
   if (tab === 'criterios') {
     document.getElementById('btn-regen-criterios')?.addEventListener('click', () => {
       h.criterios = generarCriterios(h);
+      // Test cases se regeneran independientemente — NO son una derivación de los criterios
       h.testCases = generarTestCases(h);
       actualizarHistoria(h.id, { criterios: h.criterios, testCases: h.testCases });
       document.getElementById('tab-content').innerHTML = renderTabCriterios(h);
       bindTabEvents(h, 'criterios');
-      toast('Criterios regenerados');
+      toast(`${h.criterios.length} criterios regenerados · ${h.testCases.length} test cases actualizados`);
     });
   }
   if (tab === 'testcases') {
@@ -1301,9 +1302,12 @@ function bindTabEvents(h, tab) {
       document.getElementById('tab-content').innerHTML = renderTabTestCases(h);
       bindTabEvents(h, 'testcases');
     });
-    document.getElementById('tc-tbody')?.addEventListener('click', e => {
+    // Delegación de eventos para eliminar TCs (nuevo selector .tc-del-btn)
+    document.getElementById('tc-list-wrap')?.addEventListener('click', e => {
       const del = e.target.closest('[data-del-tc]');
       if (del) {
+        e.stopPropagation();
+        e.preventDefault();
         const idx = Number(del.dataset.delTc);
         h.testCases.splice(idx, 1);
         actualizarHistoria(h.id, { testCases: h.testCases });
@@ -1394,39 +1398,92 @@ const TC_TAG_LABEL = { unit_test:'Unit', integration:'Integration', end_to_end:'
 
 function renderTabTestCases(h) {
   const tcs = h.testCases || [];
+
+  const TAG_LABEL = { smoke:'Smoke', regression:'Regresión', integration:'Integración', end_to_end:'E2E', security:'Seguridad', performance:'Performance', ui:'UI', api:'API' };
+  const TAG_CLASS = { smoke:'tc-tag-smoke', regression:'tc-tag-reg', integration:'tc-tag-integ', end_to_end:'tc-tag-e2e', security:'tc-tag-sec', performance:'tc-tag-perf', ui:'tc-tag-ui', api:'tc-tag-api' };
+  const TIPO_ICON = { 'Funcional':'⚙️', 'No funcional':'📊', 'UI':'🖥️', 'Seguridad':'🔒', 'Integración':'🔌', 'Regresión':'🔄' };
+  const PRIO_CLASS = { 'Alta':'tc-prio-alta', 'Media':'tc-prio-media', 'Baja':'tc-prio-baja' };
+
+  const byTipo = {};
+  tcs.forEach((tc, i) => {
+    const t = tc.tipo || 'Funcional';
+    if (!byTipo[t]) byTipo[t] = [];
+    byTipo[t].push({ ...tc, _i: i });
+  });
+
+  const grupos = Object.entries(byTipo).map(([tipo, items]) => `
+    <div class="tc-grupo">
+      <div class="tc-grupo-header">
+        <span class="tc-grupo-icon">${TIPO_ICON[tipo] || '🧪'}</span>
+        <span class="tc-grupo-label">${esc(tipo)}</span>
+        <span class="tc-grupo-count">${items.length}</span>
+      </div>
+      ${items.map(tc => {
+        const tags = (tc.tags || []).map(t =>
+          `<span class="tc-tag-pill ${TAG_CLASS[t] || ''}">${TAG_LABEL[t] || esc(t)}</span>`
+        ).join('');
+        const preList = (tc.precondiciones || []).map((p, pi) =>
+          `<li>${esc(p)}</li>`).join('');
+        const pasosList = (tc.pasos || []).map((p, pi) =>
+          `<li><span class="tc-paso-num">${pi + 1}</span>${esc(p)}</li>`).join('');
+        const datosRows = (tc.datosPrueba || []).map(d =>
+          `<tr><td class="tc-dp-campo">${esc(d.campo)}</td><td class="tc-dp-valor"><code>${esc(d.valor)}</code></td><td><span class="tc-dp-tipo tc-dp-${d.tipo?.includes('inválido')||d.tipo?.includes('invalid')?'neg':'pos'}">${esc(d.tipo||'')}</span></td></tr>`
+        ).join('');
+
+        return `
+        <details class="tc-card" data-tc-idx="${tc._i}">
+          <summary class="tc-card-summary">
+            <div class="tc-card-left">
+              <span class="tc-id">${esc(tc.id)}</span>
+              <span class="tc-card-titulo">${esc(tc.titulo)}</span>
+            </div>
+            <div class="tc-card-right">
+              ${tags}
+              <span class="badge ${ESTADO_CLASS[tc.estado] || ''}">${esc(tc.estado)}</span>
+              ${tc.criterioVinculado ? `<span class="badge badge-tag">${esc(tc.criterioVinculado)}</span>` : ''}
+              <span class="tc-prio-dot ${PRIO_CLASS[tc.prioridad] || ''}" title="Prioridad: ${esc(tc.prioridad)}"></span>
+              <button class="btn-icon btn-icon-del tc-del-btn" data-del-tc="${tc._i}" title="Eliminar" type="button">✕</button>
+            </div>
+          </summary>
+          <div class="tc-card-body">
+            ${preList ? `
+            <div class="tc-section">
+              <div class="tc-section-label">📋 Precondiciones</div>
+              <ul class="tc-list tc-pre-list">${preList}</ul>
+            </div>` : ''}
+            ${pasosList ? `
+            <div class="tc-section">
+              <div class="tc-section-label">▶ Pasos de ejecución</div>
+              <ol class="tc-list tc-pasos-list">${pasosList}</ol>
+            </div>` : ''}
+            ${datosRows ? `
+            <div class="tc-section">
+              <div class="tc-section-label">🗂 Datos de prueba</div>
+              <table class="tc-dp-table"><thead><tr><th>Campo</th><th>Valor</th><th>Tipo</th></tr></thead><tbody>${datosRows}</tbody></table>
+            </div>` : ''}
+            ${tc.resultadoEsperado ? `
+            <div class="tc-section">
+              <div class="tc-section-label">✅ Resultado esperado</div>
+              <div class="tc-resultado">${esc(tc.resultadoEsperado)}</div>
+            </div>` : ''}
+          </div>
+        </details>`;
+      }).join('')}
+    </div>`).join('');
+
   return `<div class="tab-testcases">
     <div class="tab-toolbar">
-      <span class="tab-count">${tcs.length} test case${tcs.length !== 1 ? 's' : ''}</span>
-      <div class="tc-legend">
-        <span class="tc-tag-pill tc-tag-unit">Unit</span>
-        <span class="tc-tag-pill tc-tag-integ">Integration</span>
-        <span class="tc-tag-pill tc-tag-e2e">E2E</span>
+      <div class="tc-toolbar-left">
+        <span class="tab-count">${tcs.length} test case${tcs.length !== 1 ? 's' : ''}</span>
+        <span class="tc-coverage-hint">Clic en cada TC para ver pasos y datos de prueba</span>
       </div>
-      <button class="btn btn-accent btn-sm" id="btn-add-tc">+ Añadir</button>
+      <button class="btn btn-accent btn-sm" id="btn-add-tc">+ Añadir manual</button>
     </div>
-    <table class="tabla-tc" id="tc-tbody-wrap">
-      <thead><tr>
-        <th>ID</th><th>Título</th><th>Tags</th><th>Tipo</th><th>Prioridad</th><th>Estado</th><th>Criterio</th><th></th>
-      </tr></thead>
-      <tbody id="tc-tbody">
-        ${tcs.map((tc, i) => {
-          const tags = (tc.tags || []).map(t =>
-            `<span class="tc-tag-pill ${TC_TAG_CLASS[t] || ''}">${TC_TAG_LABEL[t] || esc(t)}</span>`
-          ).join('');
-          return `
-          <tr>
-            <td><span class="tc-id">${esc(tc.id)}</span></td>
-            <td>${esc(tc.titulo)}</td>
-            <td class="tc-tags-cell">${tags}</td>
-            <td>${esc(tc.tipo)}</td>
-            <td>${esc(tc.prioridad)}</td>
-            <td><span class="badge ${ESTADO_CLASS[tc.estado] || ''}">${esc(tc.estado)}</span></td>
-            <td><span class="badge badge-tag">${esc(tc.criterioVinculado)}</span></td>
-            <td><button class="btn-icon btn-icon-del" data-del-tc="${i}" title="Eliminar">✕</button></td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>
+    <div id="tc-list-wrap">
+      ${tcs.length === 0
+        ? `<div class="tc-empty">Sin test cases. Generá los criterios primero para auto-generar los TCs, o añadí uno manual.</div>`
+        : grupos}
+    </div>
   </div>`;
 }
 
